@@ -1,0 +1,1201 @@
+// import React, { useState, useEffect } from "react";
+// import MainLayout from "../layout/MainLayout";
+// import { faSearch } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import SelectField from "../components/SelectField";
+// import axios from "axios";
+
+// const PaymentEntry = () => {
+//   const [selectedStd, setSelectedStd] = useState("");
+//   const [selectedDiv, setSelectedDiv] = useState("");
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [paymentEntries, setPaymentEntries] = useState([]);
+//   const [modalOpen, setModalOpen] = useState(false);
+//   const [selectedEntry, setSelectedEntry] = useState(null);
+//   const [formData, setFormData] = useState({
+//     date: "",
+//     installmentType: "Partial",
+//     amount: 0,
+//     mode: "Online",
+//   });
+//   const [feesData, setFeesData] = useState({});
+
+//   // Only fetch data when both standard and division are selected
+//   useEffect(() => {
+//     if (selectedStd && selectedDiv) {
+//       fetchPaymentEntries();
+//     } else {
+//       setPaymentEntries([]); // Clear entries when filters are not complete
+//     }
+//   }, [selectedStd, selectedDiv, searchTerm]);
+
+//   useEffect(() => {
+//     console.log("Selected Std changed:", selectedStd);
+//     if (selectedStd) {
+//       fetchFeesData();
+//     } else {
+//       setFeesData({}); // Clear fees data when no standard is selected
+//     }
+//   }, [selectedStd]);
+
+//   const fetchPaymentEntries = async () => {
+//     // Only proceed if both filters are selected
+//     if (!selectedStd || !selectedDiv) {
+//       return;
+//     }
+
+//     try {
+//       const response = await axios.get(
+//         "http://localhost:5000/api/payment-entries",
+//         {
+//           params: { std: selectedStd, div: selectedDiv, search: searchTerm },
+//           headers: {
+//             "Content-Type": "application/json",
+//             auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+//           },
+//         }
+//       );
+//       setPaymentEntries(response.data);
+//     } catch (error) {
+//       console.error("Error fetching payment entries:", error);
+//     }
+//   };
+
+//   const fetchFeesData = async () => {
+//     try {
+//       const response = await axios.get("http://localhost:5000/api/fees", {
+//         headers: {
+//           "Content-Type": "application/json",
+//           auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+//         },
+//       });
+
+//       let feesMap = {};
+//       console.log("Raw fees data:", response.data);
+
+//       if (Array.isArray(response.data)) {
+//         feesMap = response.data.reduce((acc, fee) => {
+//           acc[normalizeStd(fee.standard)] = fee.total;
+//           return acc;
+//         }, {});
+//       } else if (response.data && typeof response.data === "object") {
+//         // Handle both `{ fees: {...} }` and `{1:26000, 2:100000,...}`
+//         if (response.data.fees) {
+//           feesMap = response.data.fees;
+//         } else {
+//           Object.keys(response.data).forEach((key) => {
+//             feesMap[normalizeStd(key)] = response.data[key];
+//           });
+//         }
+//       }
+
+//       console.log("Fees data received:", feesMap);
+//       setFeesData(feesMap);
+//     } catch (error) {
+//       console.error("Error fetching fees data:", error);
+//       setFeesData({
+//         5: 30000,
+//         6: 28000,
+//         7: 35000,
+//         8: 40000,
+//       });
+//     }
+//   };
+
+//   // helper
+//   const normalizeStd = (std) => std.replace(/\D/g, ""); // "5th" → "5"
+
+//   // Calculate total paid amount from installments
+//   const calculatePaidAmount = (installments) => {
+//     if (!installments || !Array.isArray(installments)) return 0;
+//     return installments.reduce((sum, inst) => sum + (inst.amount || 0), 0);
+//   };
+
+//   // Calculate remaining amount
+//   const calculateRemainingAmount = (entry) => {
+//     const totalFees = feesData[normalizeStd(entry.std)] || entry.totalFees || 0;
+//     const paidAmount = calculatePaidAmount(entry.installments);
+//     return Math.max(0, totalFees - paidAmount);
+//   };
+
+//   // Get payment status based on amounts
+//   const getPaymentStatus = (entry) => {
+//     const totalFees = feesData[normalizeStd(entry.std)] || entry.totalFees || 0;
+//     const paidAmount = calculatePaidAmount(entry.installments);
+    
+//     if (paidAmount === 0) return "Unpaid";
+//     if (paidAmount >= totalFees) return "Paid";
+//     return "Partial";
+//   };
+
+//   const handleNameClick = (studentName) => {
+//     alert(`Clicked on ${studentName}`);
+//   };
+
+//   const handleActionClick = (entry) => {
+//     const status = getPaymentStatus(entry);
+    
+//     if (status === "Paid") {
+//       // Handle download for paid entries
+//       alert(`Downloading receipt for ${entry.name}`);
+//       // Alternatively, implement actual download logic here
+//     } else {
+//       // Open modal for unpaid/partial entries and autofill form
+//       const today = new Date().toISOString().split("T")[0];
+//       const remainingAmount = calculateRemainingAmount(entry);
+      
+//       setFormData({
+//         date: today,
+//         installmentType: status === "Unpaid" ? "Partial" : "Partial",
+//         amount: remainingAmount || 0,
+//         mode: "Online",
+//       });
+//       setSelectedEntry(entry);
+//       setModalOpen(true);
+//     }
+//   };
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+    
+//     if (name === "installmentType") {
+//       // Auto-fill amount based on installment type
+//       if (value === "Full" && selectedEntry) {
+//         const remainingAmount = calculateRemainingAmount(selectedEntry);
+//         setFormData((prev) => ({ 
+//           ...prev, 
+//           [name]: value, 
+//           amount: remainingAmount 
+//         }));
+//       } else {
+//         setFormData((prev) => ({ ...prev, [name]: value }));
+//       }
+//     } else {
+//       setFormData((prev) => ({ ...prev, [name]: value }));
+//     }
+//   };
+
+//   const handleModalSubmit = async () => {
+//     if (selectedEntry && formData.date && formData.amount > 0) {
+//       const remainingAmount = calculateRemainingAmount(selectedEntry);
+      
+//       // Validate amount doesn't exceed remaining balance
+//       if (formData.amount > remainingAmount) {
+//         alert(`Amount cannot exceed remaining balance of ₹${remainingAmount.toLocaleString()}`);
+//         return;
+//       }
+
+//       try {
+//         await axios.put(
+//           `http://localhost:5000/api/update-payment-entry/${selectedEntry._id}`,
+//           {
+//             date: formData.date,
+//             installmentType: formData.installmentType,
+//             amount: formData.amount,
+//             mode: formData.mode,
+//           },
+//           {
+//             headers: {
+//               "Content-Type": "application/json",
+//               auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+//             },
+//           }
+//         );
+//         alert("Payment entry updated successfully!");
+//         setModalOpen(false);
+//         fetchPaymentEntries();
+//       } catch (error) {
+//         console.error("Error updating payment entry:", error);
+//         alert("Error updating payment entry. Please try again.");
+//       }
+//     } else {
+//       alert("Please fill in the required fields.");
+//     }
+//   };
+
+//   const handleModalClose = () => {
+//     setModalOpen(false);
+//     setSelectedEntry(null);
+//     setFormData({
+//       date: "",
+//       installmentType: "Partial",
+//       amount: 0,
+//       mode: "Online",
+//     });
+//   };
+
+//   // Function to render the selection prompt
+//   const renderSelectionPrompt = () => {
+//     if (!selectedStd && !selectedDiv) {
+//       return (
+//         <div className="text-center text-gray-500 py-8">
+//           <p className="text-lg">Please select both Standard and Division to view payment entries.</p>
+//         </div>
+//       );
+//     } else if (!selectedStd) {
+//       return (
+//         <div className="text-center text-gray-500 py-8">
+//           <p className="text-lg">Please select a Standard to view payment entries.</p>
+//         </div>
+//       );
+//     } else if (!selectedDiv) {
+//       return (
+//         <div className="text-center text-gray-500 py-8">
+//           <p className="text-lg">Please select a Division to view payment entries.</p>
+//         </div>
+//       );
+//     }
+//     return null;
+//   };
+
+//   return (
+//     <MainLayout>
+//       <div className="bg-white rounded-2xl shadow p-6">
+//         <div className="p-6 space-y-8">
+//           {/* Top Bar */}
+//           <div className="flex flex-wrap items-center justify-between gap-4">
+//             <div className="flex items-center">
+//               <input
+//                 type="text"
+//                 placeholder="Search Student"
+//                 value={searchTerm}
+//                 onChange={(e) => setSearchTerm(e.target.value)}
+//                 className="border px-4 py-2 rounded-l"
+//                 disabled={!selectedStd || !selectedDiv} // Disable search if filters not selected
+//               />
+//               <div className={`text-white px-4 py-2 rounded-r cursor-pointer ${
+//                 !selectedStd || !selectedDiv ? 'bg-gray-400' : 'bg-blue-500'
+//               }`}>
+//                 <FontAwesomeIcon icon={faSearch} />
+//               </div>
+//             </div>
+//             <div className="flex items-center gap-6 flex-wrap">
+//               <div className="flex items-center gap-2">
+//                 <label className="whitespace-nowrap">Std:</label>
+//                 <SelectField
+//                   label=""
+//                   options={[
+//                     { label: "Select Standard", value: "" },
+//                     { label: "1st", value: "1" },
+//                     { label: "2nd", value: "2" },
+//                     { label: "3rd", value: "3" },
+//                     { label: "4th", value: "4" },
+//                     { label: "5th", value: "5" },
+//                     { label: "6th", value: "6" },
+//                     { label: "7th", value: "7" },
+//                     { label: "8th", value: "8" },
+//                     { label: "9th", value: "9" },
+//                     { label: "10th", value: "10" },
+//                   ]}
+//                   onChange={(e) => setSelectedStd(e.target.value)}
+//                   value={selectedStd}
+//                 />
+
+//                 <SelectField
+//                   label=""
+//                   options={[
+//                     { label: "Select Division", value: "" },
+//                     { label: "A", value: "A" },
+//                     { label: "B", value: "B" },
+//                     { label: "C", value: "C" },
+//                   ]}
+//                   onChange={(e) => setSelectedDiv(e.target.value)}
+//                   value={selectedDiv}
+//                 />
+//               </div>
+//             </div>
+//           </div>
+
+//           <h2 className="text-2xl font-bold">Payment Entry</h2>
+
+//           {/* Show fees breakdown only when standard is selected */}
+//           {selectedStd && feesData[normalizeStd(selectedStd)] && (
+//             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+//               <h3 className="text-lg font-semibold text-blue-800 mb-2">
+//                 Fee Structure for Standard {selectedStd}
+//               </h3>
+//               <p className="text-blue-700">
+//                 Total Fees: ₹{feesData[normalizeStd(selectedStd)].toLocaleString()}
+//               </p>
+//             </div>
+//           )}
+
+//           {/* Conditional rendering based on filter selection */}
+//           {!selectedStd || !selectedDiv ? (
+//             renderSelectionPrompt()
+//           ) : (
+//             <div className="overflow-x-auto">
+//               <table className="w-full border-collapse border">
+//                 <thead className="bg-blue-100 text-black">
+//                   <tr>
+//                     <th className="border px-4 py-2 text-left">Name</th>
+//                     <th className="border px-4 py-2 text-left">Std</th>
+//                     <th className="border px-4 py-2 text-left">Div</th>
+//                     <th className="border px-4 py-2 text-left">Installment Dates</th>
+//                     <th className="border px-4 py-2 text-left">Installment Amounts</th>
+//                     <th className="border px-4 py-2 text-left">Total Fees</th>
+//                     <th className="border px-4 py-2 text-left">Paid Amount</th>
+//                     <th className="border px-4 py-2 text-left">Remaining</th>
+//                     <th className="border px-4 py-2 text-left">Status</th>
+//                     <th className="border px-4 py-2 text-left">Action</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody className="bg-white">
+//                   {paymentEntries.length > 0 ? (
+//                     paymentEntries.map((entry, index) => {
+//                       const totalFees = feesData[normalizeStd(entry.std)] || entry.totalFees || 0;
+//                       const paidAmount = calculatePaidAmount(entry.installments);
+//                       const remainingAmount = calculateRemainingAmount(entry);
+//                       const status = getPaymentStatus(entry);
+                      
+//                       return (
+//                         <tr
+//                           key={entry._id || index}
+//                           className="hover:bg-gray-50 align-top"
+//                         >
+//                           <td className="border px-4 py-2">
+//                             <button
+//                               onClick={() => handleNameClick(entry.name)}
+//                               className="text-blue-600 hover:underline"
+//                             >
+//                               {entry.name}
+//                             </button>
+//                           </td>
+//                           <td className="border px-4 py-2">{entry.std}</td>
+//                           <td className="border px-4 py-2">{entry.div}</td>
+//                           <td className="border px-4 py-2">
+//                             {entry.installments && entry.installments.length > 0 ? (
+//                               entry.installments.map((installment, i) => (
+//                                 <div key={i} className="text-sm">
+//                                   {new Date(installment.date).toLocaleDateString()}
+//                                 </div>
+//                               ))
+//                             ) : (
+//                               <span className="text-gray-400">No payments</span>
+//                             )}
+//                           </td>
+//                           <td className="border px-4 py-2">
+//                             {entry.installments && entry.installments.length > 0 ? (
+//                               entry.installments.map((installment, i) => (
+//                                 <div key={i} className="text-sm">
+//                                   ₹{(installment.amount || 0).toLocaleString()}
+//                                 </div>
+//                               ))
+//                             ) : (
+//                               <span className="text-gray-400">₹0</span>
+//                             )}
+//                           </td>
+//                           <td className="border px-4 py-2 font-semibold">
+//                             ₹{totalFees.toLocaleString()}
+//                           </td>
+//                           <td className="border px-4 py-2 text-green-600 font-semibold">
+//                             ₹{paidAmount.toLocaleString()}
+//                           </td>
+//                           <td className="border px-4 py-2 text-red-600 font-semibold">
+//                             ₹{remainingAmount.toLocaleString()}
+//                           </td>
+//                           <td className="border px-4 py-2">
+//                             <span
+//                               className={`font-semibold px-2 py-1 rounded text-xs ${
+//                                 status === "Paid"
+//                                   ? "bg-green-100 text-green-800"
+//                                   : status === "Partial"
+//                                   ? "bg-yellow-100 text-yellow-800"
+//                                   : "bg-red-100 text-red-800"
+//                               }`}
+//                             >
+//                               {status}
+//                             </span>
+//                           </td>
+//                           <td className="border px-4 py-2">
+//                             <button
+//                               onClick={() => handleActionClick(entry)}
+//                               disabled={status === "Paid"}
+//                               className={`px-3 py-1 rounded text-sm ${
+//                                 status === "Paid"
+//                                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+//                                   : "bg-blue-500 text-white hover:bg-blue-600"
+//                               }`}
+//                             >
+//                               {status === "Paid" ? "Completed" : "Pay"}
+//                             </button>
+//                           </td>
+//                         </tr>
+//                       );
+//                     })
+//                   ) : (
+//                     <tr>
+//                       <td colSpan="10" className="text-center text-gray-500 py-4">
+//                         No students found for Standard {selectedStd} Division {selectedDiv}.
+//                       </td>
+//                     </tr>
+//                   )}
+//                 </tbody>
+//               </table>
+//             </div>
+//           )}
+//         </div>
+
+//         {modalOpen && selectedEntry && (
+//           <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+//             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+//               <h3 className="text-xl font-bold mb-4 text-gray-800">
+//                 Payment Details
+//               </h3>
+              
+//               {/* Payment Summary */}
+//               <div className="bg-gray-50 p-4 rounded-lg mb-4">
+//                 <h4 className="font-semibold text-gray-800 mb-2">Payment Summary</h4>
+//                 <div className="space-y-1 text-sm">
+//                   <div className="flex justify-between">
+//                     <span>Total Fees:</span>
+//                     <span className="font-semibold">
+//                       ₹{(feesData[normalizeStd(selectedEntry.std)] || selectedEntry.totalFees || 0).toLocaleString()}
+//                     </span>
+//                   </div>
+//                   <div className="flex justify-between">
+//                     <span>Paid Amount:</span>
+//                     <span className="font-semibold text-green-600">
+//                       ₹{calculatePaidAmount(selectedEntry.installments).toLocaleString()}
+//                     </span>
+//                   </div>
+//                   <div className="flex justify-between border-t pt-1">
+//                     <span>Remaining:</span>
+//                     <span className="font-semibold text-red-600">
+//                       ₹{calculateRemainingAmount(selectedEntry).toLocaleString()}
+//                     </span>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <form className="space-y-4">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Student Name
+//                   </label>
+//                   <input
+//                     type="text"
+//                     value={selectedEntry.name}
+//                     readOnly
+//                     className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-100 text-gray-700"
+//                   />
+//                 </div>
+//                 <div className="flex gap-4">
+//                   <div className="flex-1">
+//                     <label className="block text-sm font-medium text-gray-700">
+//                       Standard
+//                     </label>
+//                     <input
+//                       type="text"
+//                       value={selectedEntry.std}
+//                       readOnly
+//                       className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-100 text-gray-700"
+//                     />
+//                   </div>
+//                   <div className="flex-1">
+//                     <label className="block text-sm font-medium text-gray-700">
+//                       Division
+//                     </label>
+//                     <input
+//                       type="text"
+//                       value={selectedEntry.div}
+//                       readOnly
+//                       className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-100 text-gray-700"
+//                     />
+//                   </div>
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Payment Date *
+//                   </label>
+//                   <input
+//                     type="date"
+//                     name="date"
+//                     value={formData.date}
+//                     onChange={handleInputChange}
+//                     required
+//                     className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Installment Type
+//                   </label>
+//                   <select
+//                     name="installmentType"
+//                     value={formData.installmentType}
+//                     onChange={handleInputChange}
+//                     className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   >
+//                     <option value="Partial">Partial Payment</option>
+//                     <option value="Full">Full Payment (Remaining Amount)</option>
+//                   </select>
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Amount (₹) *
+//                   </label>
+//                   <input
+//                     type="number"
+//                     name="amount"
+//                     value={formData.amount}
+//                     onChange={handleInputChange}
+//                     min="1"
+//                     max={calculateRemainingAmount(selectedEntry)}
+//                     step="0.01"
+//                     required
+//                     className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   />
+//                   <p className="mt-1 text-xs text-gray-500">
+//                     Maximum allowed: ₹{calculateRemainingAmount(selectedEntry).toLocaleString()}
+//                   </p>
+//                 </div>
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Payment Mode
+//                   </label>
+//                   <select
+//                     name="mode"
+//                     value={formData.mode}
+//                     onChange={handleInputChange}
+//                     className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+//                   >
+//                     <option value="Online">Online Payment</option>
+//                     <option value="Cash">Cash</option>
+//                     <option value="UPI">UPI</option>
+//                     <option value="Cheque">Cheque</option>
+//                     <option value="Bank Transfer">Bank Transfer</option>
+//                   </select>
+//                 </div>
+//               </form>
+//               <div className="mt-6 flex justify-end gap-3">
+//                 <button
+//                   type="button"
+//                   onClick={handleModalClose}
+//                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   type="button"
+//                   onClick={handleModalSubmit}
+//                   className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+//                   disabled={!formData.date || formData.amount <= 0 || formData.amount > calculateRemainingAmount(selectedEntry)}
+//                 >
+//                   Submit Payment
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     </MainLayout>
+//   );
+// };
+
+// export default PaymentEntry;
+
+import React, { useState, useEffect } from "react";
+import MainLayout from "../layout/MainLayout";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import SelectField from "../components/SelectField";
+import axios from "axios";
+// --- Import the API Base URL from the config file (Assumed Import) ---
+import { API_BASE_URL } from '../config'; 
+
+const PaymentEntry = () => {
+  const [selectedStd, setSelectedStd] = useState("");
+  const [selectedDiv, setSelectedDiv] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [paymentEntries, setPaymentEntries] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const [formData, setFormData] = useState({
+    date: "",
+    installmentType: "Partial",
+    amount: 0,
+    mode: "Online",
+  });
+  const [feesData, setFeesData] = useState({});
+
+  // Only fetch data when both standard and division are selected
+  useEffect(() => {
+    if (selectedStd && selectedDiv) {
+      fetchPaymentEntries();
+    } else {
+      setPaymentEntries([]); // Clear entries when filters are not complete
+    }
+  }, [selectedStd, selectedDiv, searchTerm]);
+
+  useEffect(() => {
+    console.log("Selected Std changed:", selectedStd);
+    if (selectedStd) {
+      fetchFeesData();
+    } else {
+      setFeesData({}); // Clear fees data when no standard is selected
+    }
+  }, [selectedStd]);
+
+  const fetchPaymentEntries = async () => {
+    // Only proceed if both filters are selected
+    if (!selectedStd || !selectedDiv) {
+      return;
+    }
+
+    try {
+      // FIX 1: Using imported API_BASE_URL
+      const response = await axios.get(
+        `${API_BASE_URL}api/payment-entries`,
+        {
+          params: { std: selectedStd, div: selectedDiv, search: searchTerm },
+          headers: {
+            "Content-Type": "application/json",
+            auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+          },
+        }
+      );
+      console.log("Fetched transactions:", response.data);
+      setPaymentEntries(response.data);
+    } catch (error) {
+      console.error("Error fetching payment entries:", error);
+    }
+  };
+
+  const fetchFeesData = async () => {
+    try {
+      // FIX 2: Using imported API_BASE_URL
+      const response = await axios.get(`${API_BASE_URL}api/fees`, {
+        headers: {
+          "Content-Type": "application/json",
+          auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+        },
+      });
+
+      let feesMap = {};
+      console.log("Raw fees data:", response.data);
+
+      if (Array.isArray(response.data)) {
+        feesMap = response.data.reduce((acc, fee) => {
+          acc[normalizeStd(fee.standard)] = fee.total;
+          return acc;
+        }, {});
+      } else if (response.data && typeof response.data === "object") {
+        // Handle both `{ fees: {...} }` and `{1:26000, 2:100000,...}`
+        if (response.data.fees) {
+          feesMap = response.data.fees;
+        } else {
+          Object.keys(response.data).forEach((key) => {
+            feesMap[normalizeStd(key)] = response.data[key];
+          });
+        }
+      }
+
+      console.log("Fees data received:", feesMap);
+      setFeesData(feesMap);
+    } catch (error) {
+      console.error("Error fetching fees data:", error);
+      setFeesData({
+        5: 30000,
+        6: 28000,
+        7: 35000,
+        8: 40000,
+      });
+    }
+  };
+
+  // helper
+  const normalizeStd = (std) => String(std).replace(/\D/g, ""); // "5th" → "5"
+
+  // Calculate total paid amount from installments
+  const calculatePaidAmount = (installments) => {
+    if (!installments || !Array.isArray(installments)) return 0;
+    return installments.reduce((sum, inst) => sum + (inst.amount || 0), 0);
+  };
+
+  // Calculate remaining amount
+  const calculateRemainingAmount = (entry) => {
+    const totalFees = feesData[normalizeStd(entry.std)] || entry.totalFees || 0;
+    const paidAmount = calculatePaidAmount(entry.installments);
+    return Math.max(0, totalFees - paidAmount);
+  };
+
+  // Get payment status based on amounts
+  const getPaymentStatus = (entry) => {
+    const totalFees = feesData[normalizeStd(entry.std)] || entry.totalFees || 0;
+    const paidAmount = calculatePaidAmount(entry.installments);
+    
+    if (paidAmount === 0) return "Unpaid";
+    if (paidAmount >= totalFees) return "Paid";
+    return "Partial";
+  };
+
+  const handleNameClick = (studentName) => {
+    alert(`Clicked on ${studentName}`);
+  };
+
+  const handleActionClick = (entry) => {
+    const status = getPaymentStatus(entry);
+    
+    if (status === "Paid") {
+      // Handle download for paid entries
+      alert(`Downloading receipt for ${entry.name}`);
+      // Alternatively, implement actual download logic here
+    } else {
+      // Open modal for unpaid/partial entries and autofill form
+      const today = new Date().toISOString().split("T")[0];
+      const remainingAmount = calculateRemainingAmount(entry);
+      
+      setFormData({
+        date: today,
+        installmentType: status === "Unpaid" ? "Partial" : "Partial",
+        amount: remainingAmount || 0,
+        mode: "Online",
+      });
+      setSelectedEntry(entry);
+      setModalOpen(true);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === "installmentType") {
+      // Auto-fill amount based on installment type
+      if (value === "Full" && selectedEntry) {
+        const remainingAmount = calculateRemainingAmount(selectedEntry);
+        setFormData((prev) => ({ 
+          ...prev, 
+          [name]: value, 
+          amount: remainingAmount 
+        }));
+      } else {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleModalSubmit = async () => {
+    if (selectedEntry && formData.date && formData.amount > 0) {
+      const remainingAmount = calculateRemainingAmount(selectedEntry);
+      
+      // Validate amount doesn't exceed remaining balance
+      if (formData.amount > remainingAmount) {
+        alert(`Amount cannot exceed remaining balance of ₹${remainingAmount.toLocaleString()}`);
+        return;
+      }
+
+      try {
+        // FIX 3: Using imported API_BASE_URL
+        await axios.put(
+          `${API_BASE_URL}api/update-payment-entry/${selectedEntry._id}`,
+          {
+            date: formData.date,
+            installmentType: formData.installmentType,
+            amount: formData.amount,
+            mode: formData.mode,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+            },
+          }
+        );
+        alert("Payment entry updated successfully!");
+        setModalOpen(false);
+        fetchPaymentEntries();
+      } catch (error) {
+        console.error("Error updating payment entry:", error);
+        alert("Error updating payment entry. Please try again.");
+      }
+    } else {
+      alert("Please fill in the required fields.");
+    }
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setSelectedEntry(null);
+    setFormData({
+      date: "",
+      installmentType: "Partial",
+      amount: 0,
+      mode: "Online",
+    });
+  };
+
+  // Function to render the selection prompt
+  const renderSelectionPrompt = () => {
+    if (!selectedStd && !selectedDiv) {
+      return (
+        <div className="text-center text-gray-500 py-8">
+          <p className="text-lg">Please select both Standard and Division to view payment entries.</p>
+        </div>
+      );
+    } else if (!selectedStd) {
+      return (
+        <div className="text-center text-gray-500 py-8">
+          <p className="text-lg">Please select a Standard to view payment entries.</p>
+        </div>
+      );
+    } else if (!selectedDiv) {
+      return (
+        <div className="text-center text-gray-500 py-8">
+          <p className="text-lg">Please select a Division to view payment entries.</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <MainLayout>
+      <div className="bg-white rounded-2xl shadow p-6">
+        <div className="p-6 space-y-8">
+          {/* Top Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center">
+              <input
+                type="text"
+                placeholder="Search Student"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border px-4 py-2 rounded-l"
+                disabled={!selectedStd || !selectedDiv} // Disable search if filters not selected
+              />
+              <div className={`text-white px-4 py-2 rounded-r cursor-pointer ${
+                !selectedStd || !selectedDiv ? 'bg-gray-400' : 'bg-blue-500'
+              }`}>
+                <FontAwesomeIcon icon={faSearch} />
+              </div>
+            </div>
+            <div className="flex items-center gap-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="whitespace-nowrap">Std:</label>
+                <SelectField
+                  label=""
+                  options={[
+                    { label: "Select Standard", value: "" },
+                    { label: "1st", value: "1" },
+                    { label: "2nd", value: "2" },
+                    { label: "3rd", value: "3" },
+                    { label: "4th", value: "4" },
+                    { label: "5th", value: "5" },
+                    { label: "6th", value: "6" },
+                    { label: "7th", value: "7" },
+                    { label: "8th", value: "8" },
+                    { label: "9th", value: "9" },
+                    { label: "10th", value: "10" },
+                  ]}
+                  onChange={(e) => setSelectedStd(e.target.value)}
+                  value={selectedStd}
+                />
+
+                <SelectField
+                  label=""
+                  options={[
+                    { label: "Select Division", value: "" },
+                    { label: "A", value: "A" },
+                    { label: "B", value: "B" },
+                    { label: "C", value: "C" },
+                  ]}
+                  onChange={(e) => setSelectedDiv(e.target.value)}
+                  value={selectedDiv}
+                />
+              </div>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold">Payment Entry</h2>
+
+          {/* Show fees breakdown only when standard is selected */}
+          {selectedStd && feesData[normalizeStd(selectedStd)] && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                Fee Structure for Standard {selectedStd}
+              </h3>
+              <p className="text-blue-700">
+                Total Fees: ₹{feesData[normalizeStd(selectedStd)].toLocaleString()}
+              </p>
+            </div>
+          )}
+
+          {/* Conditional rendering based on filter selection */}
+          {!selectedStd || !selectedDiv ? (
+            renderSelectionPrompt()
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border">
+                <thead className="bg-blue-100 text-black">
+                  <tr>
+                    <th className="border px-4 py-2 text-left">Name</th>
+                    <th className="border px-4 py-2 text-left">Std</th>
+                    <th className="border px-4 py-2 text-left">Div</th>
+                    <th className="border px-4 py-2 text-left">Installment Dates</th>
+                    <th className="border px-4 py-2 text-left">Installment Amounts</th>
+                    <th className="border px-4 py-2 text-left">Total Fees</th>
+                    <th className="border px-4 py-2 text-left">Paid Amount</th>
+                    <th className="border px-4 py-2 text-left">Remaining</th>
+                    <th className="border px-4 py-2 text-left">Status</th>
+                    <th className="border px-4 py-2 text-left">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  {paymentEntries.length > 0 ? (
+                    paymentEntries.map((entry, index) => {
+                      const totalFees = feesData[normalizeStd(entry.std)] || entry.totalFees || 0;
+                      const paidAmount = calculatePaidAmount(entry.installments);
+                      const remainingAmount = calculateRemainingAmount(entry);
+                      const status = getPaymentStatus(entry);
+                      
+                      return (
+                        <tr
+                          key={entry._id || index}
+                          className="hover:bg-gray-50 align-top"
+                        >
+                          <td className="border px-4 py-2">
+                            <button
+                              onClick={() => handleNameClick(entry.name)}
+                              className="text-blue-600 hover:underline"
+                            >
+                              {entry.name}
+                            </button>
+                          </td>
+                          <td className="border px-4 py-2">{entry.std}</td>
+                          <td className="border px-4 py-2">{entry.div}</td>
+                          <td className="border px-4 py-2">
+                            {entry.installments && entry.installments.length > 0 ? (
+                              entry.installments.map((installment, i) => (
+                                <div key={i} className="text-sm">
+                                  {new Date(installment.date).toLocaleDateString()}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-gray-400">No payments</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2">
+                            {entry.installments && entry.installments.length > 0 ? (
+                              entry.installments.map((installment, i) => (
+                                <div key={i} className="text-sm">
+                                  ₹{(installment.amount || 0).toLocaleString()}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-gray-400">₹0</span>
+                            )}
+                          </td>
+                          <td className="border px-4 py-2 font-semibold">
+                            ₹{totalFees.toLocaleString()}
+                          </td>
+                          <td className="border px-4 py-2 text-green-600 font-semibold">
+                            ₹{paidAmount.toLocaleString()}
+                          </td>
+                          <td className="border px-4 py-2 text-red-600 font-semibold">
+                            ₹{remainingAmount.toLocaleString()}
+                          </td>
+                          <td className="border px-4 py-2">
+                            <span
+                              className={`font-semibold px-2 py-1 rounded text-xs ${
+                                status === "Paid"
+                                  ? "bg-green-100 text-green-800"
+                                  : status === "Partial"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {status}
+                            </span>
+                          </td>
+                          <td className="border px-4 py-2">
+                            <button
+                              onClick={() => handleActionClick(entry)}
+                              disabled={status === "Paid"}
+                              className={`px-3 py-1 rounded text-sm ${
+                                status === "Paid"
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-blue-500 text-white hover:bg-blue-600"
+                              }`}
+                            >
+                              {status === "Paid" ? "Completed" : "Pay"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="10" className="text-center text-gray-500 py-4">
+                        No students found for Standard {selectedStd} Division {selectedDiv}.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {modalOpen && selectedEntry && (
+          <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">
+                Payment Details
+              </h3>
+              
+              {/* Payment Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <h4 className="font-semibold text-gray-800 mb-2">Payment Summary</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Total Fees:</span>
+                    <span className="font-semibold">
+                      ₹{(feesData[normalizeStd(selectedEntry.std)] || selectedEntry.totalFees || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Paid Amount:</span>
+                    <span className="font-semibold text-green-600">
+                      ₹{calculatePaidAmount(selectedEntry.installments).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-1">
+                    <span>Remaining:</span>
+                    <span className="font-semibold text-red-600">
+                      ₹{calculateRemainingAmount(selectedEntry).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Student Name
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedEntry.name}
+                    readOnly
+                    className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-100 text-gray-700"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Standard
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedEntry.std}
+                      readOnly
+                      className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-100 text-gray-700"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Division
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedEntry.div}
+                      readOnly
+                      className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md bg-gray-100 text-gray-700"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Payment Date *
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Installment Type
+                  </label>
+                  <select
+                    name="installmentType"
+                    value={formData.installmentType}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Partial">Partial Payment</option>
+                    <option value="Full">Full Payment (Remaining Amount)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Amount (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    min="1"
+                    max={calculateRemainingAmount(selectedEntry)}
+                    step="0.01"
+                    required
+                    className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Maximum allowed: ₹{calculateRemainingAmount(selectedEntry).toLocaleString()}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Payment Mode
+                  </label>
+                  <select
+                    name="mode"
+                    value={formData.mode}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Online">Online Payment</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
+                </div>
+              </form>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleModalClose}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleModalSubmit}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!formData.date || formData.amount <= 0 || formData.amount > calculateRemainingAmount(selectedEntry)}
+                >
+                  Submit Payment
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </MainLayout>
+  );
+};
+
+export default PaymentEntry;

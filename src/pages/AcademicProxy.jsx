@@ -1,0 +1,443 @@
+// import React, { useState, useEffect } from "react";
+// import axios from "axios";
+// import MainLayout from "../layout/MainLayout";
+// import SelectField from "../components/SelectField";
+// import PublishProxyModal from "../components/PublishProxyModal";
+
+// const AcademicProxy = () => {
+//   const [staffSearch, setStaffSearch] = useState("");
+//   const [selectedStd, setSelectedStd] = useState("");
+//   const [selectedDiv, setSelectedDiv] = useState("");
+//   const [modalOpen, setModalOpen] = useState(false);
+
+//   // Modal states
+//   const [modalStd, setModalStd] = useState("");
+//   const [modalDiv, setModalDiv] = useState("");
+//   const [modalDate, setModalDate] = useState("");
+//   const [modalLecNo, setModalLecNo] = useState("");
+//   const [modalSubject, setModalSubject] = useState("");
+//   const [modalFromTeacher, setModalFromTeacher] = useState("");
+//   const [modalToTeacher, setModalToTeacher] = useState("");
+
+//   // Dynamic Data
+//   const [subjectOptions, setSubjectOptions] = useState([]);
+//   const [teacherOptions, setTeacherOptions] = useState([]);
+//   const [proxyList, setProxyList] = useState([]);
+
+//   const days = [
+//     "Monday",
+//     "Tuesday",
+//     "Wednesday",
+//     "Thursday",
+//     "Friday",
+//     "Saturday",
+//   ];
+
+//   // 🔹 Fetch staff list from backend
+//   useEffect(() => {
+//     const fetchStaff = async () => {
+//       try {
+//         const res = await axios.get("http://localhost:5000/api/staff", {
+//           headers: {
+//             auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+//           },
+//         });
+
+//         const staffArray = Array.isArray(res.data) ? res.data : [];
+//         const formattedStaff = staffArray.map((s) => ({
+//           label: `${s.firstname} ${s.lastname}`,
+//           value: s._id,
+//         }));
+
+//         setTeacherOptions(formattedStaff);
+//       } catch (err) {
+//         console.error("Error fetching staff:", err);
+//       }
+//     };
+
+//     fetchStaff();
+//   }, []);
+
+//   // 🔹 Fetch proxy list
+//   useEffect(() => {
+//     const fetchProxies = async () => {
+//       try {
+//         const res = await axios.get("http://localhost:5000/api/proxies", {
+//           headers: {
+//             auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
+//           },
+//         });
+
+//         const proxyArray = Array.isArray(res.data) ? res.data : [];
+//         setProxyList(proxyArray);
+//       } catch (err) {
+//         console.error("Error fetching proxies:", err);
+//       }
+//     };
+
+//     fetchProxies();
+//   }, []);
+
+//   return (
+//     <MainLayout>
+//       <div className="bg-white rounded-2xl shadow p-6">
+//         <div className="p-6 space-y-6">
+//           {/* Top bar */}
+//           <div className="flex justify-between items-center">
+//             <input
+//               type="text"
+//               value={staffSearch}
+//               onChange={(e) => setStaffSearch(e.target.value)}
+//               placeholder="Search Staff..."
+//               className="border px-3 py-2 rounded-md w-64"
+//             />
+//             <button
+//               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-700"
+//               onClick={() => setModalOpen(true)}
+//             >
+//               Publish
+//             </button>
+//           </div>
+
+//           {/* Dropdowns */}
+//           <div className="flex gap-6">
+//             <div className="w-64">
+//               <select
+//                 className="w-full border px-3 py-2 rounded-md"
+//                 value={selectedStd}
+//                 onChange={(e) => setSelectedStd(e.target.value)}
+//               >
+//                 <option value="">Select Standard</option>
+//                 {["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"].map(
+//                   (std) => (
+//                     <option key={std} value={std}>
+//                       {std}
+//                     </option>
+//                   )
+//                 )}
+//               </select>
+//             </div>
+//             <div className="w-64">
+//               <select
+//                 className="w-full border px-3 py-2 rounded-md"
+//                 value={selectedDiv}
+//                 onChange={(e) => setSelectedDiv(e.target.value)}
+//               >
+//                 <option value="">Select Division</option>
+//                 {["A", "B", "C"].map((div) => (
+//                   <option key={div} value={div}>
+//                     {div}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+//           </div>
+
+//           {/* Header */}
+//           <h2 className="text-center text-2xl font-semibold">
+//             Proxy Management
+//           </h2>
+
+//           {/* Table */}
+//           <div className="overflow-x-auto mt-4">
+//             <table className="min-w-full border border-gray-300 rounded">
+//               <thead className="bg-blue-100 text-black">
+//                 <tr>
+//                   {days.map((day, index) => (
+//                     <th key={index} className="px-4 py-2 border text-center">
+//                       {day}
+//                     </th>
+//                   ))}
+//                 </tr>
+//               </thead>
+//               <tbody className="bg-white">
+//                 {proxyList.length > 0 ? (
+//                   proxyList.map((proxy, idx) => (
+//                     <tr key={idx}>
+//                       {days.map((day, dIdx) => {
+//                         const proxyDay = new Date(proxy.date).toLocaleDateString(
+//                           "en-US",
+//                           { weekday: "long" }
+//                         );
+//                         return (
+//                           <td
+//                             key={dIdx}
+//                             className="px-4 py-2 border text-center"
+//                           >
+//                             {proxyDay === day
+//                               ? `${proxy.subject} (Lec ${proxy.lecno})`
+//                               : "-"}
+//                           </td>
+//                         );
+//                       })}
+//                     </tr>
+//                   ))
+//                 ) : (
+//                   <tr>
+//                     {days.map((_, index) => (
+//                       <td
+//                         key={index}
+//                         className="px-4 py-6 border text-center text-gray-500"
+//                       >
+//                         -
+//                       </td>
+//                     ))}
+//                   </tr>
+//                 )}
+//               </tbody>
+//             </table>
+//           </div>
+
+//           {/* Modal */}
+//           <PublishProxyModal
+//             isOpen={modalOpen}
+//             onClose={() => setModalOpen(false)}
+//             standard={modalStd}
+//             setStandard={setModalStd}
+//             division={modalDiv}
+//             setDivision={setModalDiv}
+//             date={modalDate}
+//             setDate={setModalDate}
+//             lecNo={modalLecNo}
+//             setLecNo={setModalLecNo}
+//             subject={modalSubject}
+//             setSubject={setModalSubject}
+//             fromTeacher={modalFromTeacher}
+//             setFromTeacher={setModalFromTeacher}
+//             toTeacher={modalToTeacher}
+//             setToTeacher={setModalToTeacher}
+//             subjectOptions={subjectOptions}
+//             teacherOptions={teacherOptions}
+//           />
+//         </div>
+//       </div>
+//     </MainLayout>
+//   );
+// };
+
+// export default AcademicProxy;
+
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import MainLayout from "../layout/MainLayout";
+import SelectField from "../components/SelectField";
+import PublishProxyModal from "../components/PublishProxyModal";
+// --- Import the API Base URL from the config file (Assumed Import) ---
+import { API_BASE_URL } from '../config'; 
+
+const AcademicProxy = () => {
+  const [staffSearch, setStaffSearch] = useState("");
+  const [selectedStd, setSelectedStd] = useState("");
+  const [selectedDiv, setSelectedDiv] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Modal states
+  const [modalStd, setModalStd] = useState("");
+  const [modalDiv, setModalDiv] = useState("");
+  const [modalDate, setModalDate] = useState("");
+  const [modalLecNo, setModalLecNo] = useState("");
+  const [modalSubject, setModalSubject] = useState("");
+  const [modalFromTeacher, setModalFromTeacher] = useState("");
+  const [modalToTeacher, setModalToTeacher] = useState("");
+
+  // Dynamic Data
+  const [subjectOptions, setSubjectOptions] = useState([]);
+  const [teacherOptions, setTeacherOptions] = useState([]);
+  const [proxyList, setProxyList] = useState([]);
+
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU='; 
+
+  // 🔹 Fetch staff list from backend
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        // FIX 1: Using imported API_BASE_URL
+        const res = await axios.get(`${API_BASE_URL}api/staff`, {
+          headers: {
+            auth: AUTH_HEADER,
+          },
+        });
+
+        const staffArray = Array.isArray(res.data) ? res.data : [];
+        const formattedStaff = staffArray.map((s) => ({
+          label: `${s.firstname} ${s.lastname}`,
+          value: s._id,
+        }));
+
+        setTeacherOptions(formattedStaff);
+      } catch (err) {
+        console.error("Error fetching staff:", err);
+      }
+    };
+
+    fetchStaff();
+  }, []);
+
+  // 🔹 Fetch proxy list
+  useEffect(() => {
+    const fetchProxies = async () => {
+      try {
+        // FIX 2: Using imported API_BASE_URL
+        const res = await axios.get(`${API_BASE_URL}api/proxies`, {
+          headers: {
+            auth: AUTH_HEADER,
+          },
+        });
+
+        const proxyArray = Array.isArray(res.data) ? res.data : [];
+        setProxyList(proxyArray);
+      } catch (err) {
+        console.error("Error fetching proxies:", err);
+      }
+    };
+
+    fetchProxies();
+  }, []);
+
+  return (
+    <MainLayout>
+      <div className="bg-white rounded-2xl shadow p-6">
+        <div className="p-6 space-y-6">
+          {/* Top bar */}
+          <div className="flex justify-between items-center">
+            <input
+              type="text"
+              value={staffSearch}
+              onChange={(e) => setStaffSearch(e.target.value)}
+              placeholder="Search Staff..."
+              className="border px-3 py-2 rounded-md w-64"
+            />
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-green-700"
+              onClick={() => setModalOpen(true)}
+            >
+              Publish
+            </button>
+          </div>
+
+          {/* Dropdowns */}
+          <div className="flex gap-6">
+            <div className="w-64">
+              <select
+                className="w-full border px-3 py-2 rounded-md"
+                value={selectedStd}
+                onChange={(e) => setSelectedStd(e.target.value)}
+              >
+                <option value="">Select Standard</option>
+                {["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"].map(
+                  (std) => (
+                    <option key={std} value={std}>
+                      {std}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <div className="w-64">
+              <select
+                className="w-full border px-3 py-2 rounded-md"
+                value={selectedDiv}
+                onChange={(e) => setSelectedDiv(e.target.value)}
+              >
+                <option value="">Select Division</option>
+                {["A", "B", "C"].map((div) => (
+                  <option key={div} value={div}>
+                    {div}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Header */}
+          <h2 className="text-center text-2xl font-semibold">
+            Proxy Management
+          </h2>
+
+          {/* Table */}
+          <div className="overflow-x-auto mt-4">
+            <table className="min-w-full border border-gray-300 rounded">
+              <thead className="bg-blue-100 text-black">
+                <tr>
+                  {days.map((day, index) => (
+                    <th key={index} className="px-4 py-2 border text-center">
+                      {day}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                {proxyList.length > 0 ? (
+                  proxyList.map((proxy, idx) => (
+                    <tr key={idx}>
+                      {days.map((day, dIdx) => {
+                        const proxyDay = new Date(proxy.date).toLocaleDateString(
+                          "en-US",
+                          { weekday: "long" }
+                        );
+                        return (
+                          <td
+                            key={dIdx}
+                            className="px-4 py-2 border text-center"
+                          >
+                            {proxyDay === day
+                              ? `${proxy.subject} (Lec ${proxy.lecno})`
+                              : "-"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    {days.map((_, index) => (
+                      <td
+                        key={index}
+                        className="px-4 py-6 border text-center text-gray-500"
+                      >
+                        -
+                      </td>
+                    ))}
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Modal */}
+          <PublishProxyModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            standard={modalStd}
+            setStandard={setModalStd}
+            division={modalDiv}
+            setDivision={setModalDiv}
+            date={modalDate}
+            setDate={setModalDate}
+            lecNo={modalLecNo}
+            setLecNo={setModalLecNo}
+            subject={modalSubject}
+            setSubject={setModalSubject}
+            fromTeacher={modalFromTeacher}
+            setFromTeacher={setModalFromTeacher}
+            toTeacher={modalToTeacher}
+            setToTeacher={setModalToTeacher}
+            subjectOptions={subjectOptions}
+            teacherOptions={teacherOptions}
+          />
+        </div>
+      </div>
+    </MainLayout>
+  );
+};
+
+export default AcademicProxy;
