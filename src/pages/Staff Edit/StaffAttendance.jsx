@@ -260,13 +260,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { User } from "lucide-react";
 import axios from 'axios';
-// --- Import the API Base URL from the config file (ASSUMED IMPORT) ---
-// import { API_BASE_URL } from "../config"; 
-// Note: Assuming API_BASE_URL is imported from '../config' as used in previous files.
-// For this response, I am deleting the conflicting definition below.
+// --- CRITICAL FIX: Corrected import path and removed .js extension ---
+import { API_BASE_URL } from "../../config"; 
 
 const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
-// const API_BASE_URL = "http://localhost:5000/api"; // REMOVED LOCAL DEFINITION
+// -----------------------------------------------------
 
 // --- Helper Functions ---
 
@@ -285,7 +283,6 @@ const generateMonthOptions = (count = 6) => {
     let currentDate = new Date();
     
     // 1. Determine the starting month: current date minus (count - 1) months.
-    // This correctly sets the date object to the oldest month needed.
     let startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - (count - 1), 1);
 
     for (let i = 0; i < count; i++) {
@@ -358,7 +355,7 @@ export default function StaffAttendance({ staff }) {
         try {
             console.log(`DEBUG: Attendance - Fetching records for staff ${staffId}, Month: ${month}, Year: ${year}`);
             
-            // FIX: Using imported API_BASE_URL
+            // Using the imported API_BASE_URL
             const response = await axios.get(`${API_BASE_URL}api/staff/${staffId}/attendance`, {
                 params: { month: month, year: year },
                 headers: { 'auth': AUTH_HEADER }
@@ -458,6 +455,7 @@ export default function StaffAttendance({ staff }) {
             );
 
             if (week.length === 8 || i === calendarCells.length - 1) { 
+                // Pad the last week if it's incomplete
                 while (week.length < 8) {
                     week.push(<div key={`pad-${week.length}`} className="p-3 bg-gray-100/50"></div>);
                 }
@@ -471,10 +469,6 @@ export default function StaffAttendance({ staff }) {
 
     return (
         <div>
-            {/* <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Attendance for {staffName}
-            </h2> */}
-            
             {/* Month Selector */}
             <div className="mb-6">
                 <select
@@ -508,7 +502,7 @@ export default function StaffAttendance({ staff }) {
                     <div className="text-center p-8 text-blue-600 col-span-full">Loading attendance data...</div>
                 ) : (
                     <div className="grid grid-cols-8 gap-2 text-center text-sm md:text-base">
-                        {Object.keys(attendanceRecords).length === 0 && !isLoading ? (
+                        {Object.keys(attendanceRecords).length === 0 && !Object.keys(attendanceRecords).length && !isLoading ? (
                             <div className="text-center p-8 text-gray-500 col-span-full">No attendance records found for this month.</div>
                         ) : (
                             renderCalendar()
