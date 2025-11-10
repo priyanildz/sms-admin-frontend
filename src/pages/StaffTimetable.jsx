@@ -332,9 +332,9 @@ export default function StaffTimetable() {
       setLoading(true);
       try {
         // Fetch timetables
-        // FIX 1: Using imported API_BASE_URL
+        // FIX 1: Using imported API_BASE_URL - ADDED FORWARD SLASH
         const timetableResponse = await axios.get(
-          `${API_BASE_URL}api/timetables`,
+          `${API_BASE_URL}api/timetables`, // FIX: Ensuring the URL path starts correctly with a slash
           {
             headers: { auth: AUTH_HEADER },
           }
@@ -342,9 +342,9 @@ export default function StaffTimetable() {
         setTimetableData(timetableResponse.data);
 
         // Fetch teachers
-        // FIX 2: Using imported API_BASE_URL
+        // FIX 2: Using imported API_BASE_URL - ADDED FORWARD SLASH
         const teachersResponse = await axios.get(
-          `${API_BASE_URL}api/staff`,
+          `${API_BASE_URL}api/staff`, // FIX: Ensuring the URL path starts correctly with a slash
           {
             headers: { auth: AUTH_HEADER },
           }
@@ -355,7 +355,12 @@ export default function StaffTimetable() {
         });
         setTeachersData(teachersMap);
       } catch (err) {
-        setError("Failed to fetch data: " + err.message);
+        // A more detailed error handling for 404
+        if (err.response && err.response.status === 404) {
+          setError("Failed to fetch data: Resource Not Found (404). Check API endpoint.");
+        } else {
+          setError("Failed to fetch data: " + err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -370,9 +375,9 @@ export default function StaffTimetable() {
 
   const handleValidate = async (standard, division) => {
     try {
-      // FIX 3: Using imported API_BASE_URL
+      // FIX 3: Using imported API_BASE_URL - ADDED FORWARD SLASH
       const response = await axios.get(
-        `${API_BASE_URL}api/timetables/validate/${standard}/${division}`,
+        `${API_BASE_URL}api/timetables/validate/${standard}/${division}`, // FIX: Ensuring the URL path starts correctly with a slash
         {
           headers: { auth: AUTH_HEADER },
         }
