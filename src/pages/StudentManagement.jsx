@@ -789,9 +789,9 @@ import axios from "axios";
 import { API_BASE_URL } from '../config'; 
 
 export default function StudentManagement() {
-  const [studentList, setStudentList] = useState([]);
+  const [studentList, setStudentList] = useState([]); // This will now represent ACTIVE students
   const [lcList, setLCList] = useState([]);
-  const [newStudentList, setNewStudentList] = useState([]);
+  // const [newStudentList, setNewStudentList] = useState([]); // REMOVED STATE
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -802,7 +802,7 @@ export default function StudentManagement() {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        // FIX 1: Using imported API_BASE_URL (Fetch API)
+        // Fetch ALL ACTIVE STUDENTS (Non-LC)
         const response = await fetch(`${API_BASE_URL}api/students`, {
           headers: {
             auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=",
@@ -819,42 +819,16 @@ export default function StudentManagement() {
       } catch (err) {
         setError(err.message);
         console.error("Error fetching students:", err);
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
-    const fetchNewStudents = async () => {
-      try {
-        setLoading(true);
-        // FIX 2: Using imported API_BASE_URL (Axios)
-        const response = await axios.get(
-          `${API_BASE_URL}api/newstudent`,
-          {
-            headers: {
-              auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=",
-            },
-          }
-        );
-        if (response.status !== 200) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.data;
-        setNewStudentList(Array.isArray(data) ? data : []);
-        console.log("new students ", data);
-        setError(null);
-      } catch (error) {
-        setError(error.message);
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    
+    // REMOVED fetchNewStudents function entirely
 
     // for lc students
     const fetchLCStudents = async () => {
       try {
-        setLoading(true);
-        // FIX 3: Using imported API_BASE_URL (Axios)
+        
+        // Fetch all LC students
         const response = await axios.get(
           `${API_BASE_URL}api/lcstudent`,
           {
@@ -866,25 +840,29 @@ export default function StudentManagement() {
         if (response.status !== 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.data;
+        const data = response.data; // Changed await response.data to response.data
         setLCList(Array.isArray(data) ? data : []);
-        console.log("lc students ", data);
         setError(null);
       } catch (error) {
         setError(error.message);
-        console.error("Error fetching students:", error);
+        console.error("Error fetching LC students:", error);
       } finally {
-        setLoading(false);
+        // Only set loading to false after ALL fetches are complete
       }
     };
 
-    fetchNewStudents();
-    fetchStudents();
-    fetchLCStudents();
+    // Run all fetches concurrently
+    Promise.all([fetchStudents(), fetchLCStudents()])
+        .catch(err => console.error("One or more initial fetches failed:", err))
+        .finally(() => setLoading(false));
+
   }, []);
 
-  const totalStudents = studentList.length + lcList.length;
-  const newAdmissions = newStudentList.length;
+  // 🚀 NEW LOGIC: New Admissions is now explicitly the Active Student List
+  const activeStudents = studentList;
+  const newAdmissions = activeStudents.length;
+
+  const totalStudents = activeStudents.length + lcList.length;
   const lcStudents = lcList.length;
 
   const cards = [
@@ -903,60 +881,41 @@ export default function StudentManagement() {
     { title: "LC Students", count: lcStudents, color: "red", key: "LC Students" },
   ];
 
-  const combinedAllStudents = [...studentList, ...lcList];
+  const combinedAllStudents = [...activeStudents, ...lcList];
 
-  const filteredStudents =
-    selectedCard === "Total"
-      ? combinedAllStudents.filter(
-          (student) =>
-            // 🟢 SAFTEY CHECK 1: Ensure firstname exists before calling toLowerCase
-            student.firstname && 
-            student.firstname.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : selectedCard === "New Admission"
-      ? newStudentList.filter(
-          (student) =>
-            // 🟢 SAFTEY CHECK 2: Ensure firstname exists before calling toLowerCase
-            student.firstname &&
-            student.firstname.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : selectedCard === "LC Students"
-      ? lcList.filter(
-          (student) =>
-            // 🟢 SAFTEY CHECK 3: This one already had a check, but we can simplify the check slightly
-            student.firstname &&
-            student.firstname.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : studentList.filter(
-          (s) =>
-            // 🟢 SAFTEY CHECK 4: Ensure firstname exists before calling toLowerCase
-            s.status === selectedCard &&
-            s.firstname &&
-            s.firstname.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-  console.log(filteredStudents);
+  // --- Filtering Logic Updated to use ActiveStudents ---
+  const filteredStudents = (() => {
+    const query = searchQuery.toLowerCase();
+    
+    const filterByName = (student) => 
+        student.firstname && student.firstname.toLowerCase().includes(query);
+
+    if (selectedCard === "Total") {
+      return combinedAllStudents.filter(filterByName);
+    } else if (selectedCard === "New Admission") {
+      // Filter the Active Students (studentList)
+      return activeStudents.filter(filterByName);
+    } else if (selectedCard === "LC Students") {
+      // Filter the LC Students
+      return lcList.filter(filterByName);
+    }
+    
+    // Fallback if no card is selected (or status-based filtering is still expected)
+    return activeStudents.filter(filterByName);
+  })();
 
   const getTableHeaders = () => {
-    if (selectedCard === "Total") {
+    if (selectedCard === "Total" || selectedCard === "New Admission") {
       return [
         "Admission no.",
         "Students Name",
-        "GR No.",
+        "GR No.", // Total needs GR No., New Admission likely does too
         "Std",
         "Div",
         "Gender",
         "Contact no.",
         "Status",
-        "Action", // Single Action column
-      ];
-    } else if (selectedCard === "New Admission") {
-      return [
-        "Admission no.",
-        "Students Name",
-        "Std",
-        "Gender",
-        "Contact no.",
-        "Status",
+        ...(selectedCard === "Total" ? ["Action"] : []),
       ];
     } else if (selectedCard === "LC Students") {
       return [
@@ -973,9 +932,7 @@ export default function StudentManagement() {
     return [];
   };
 
-  // 🟢 CORE FIX: Added safety check to prevent 'split' on undefined/null
   const capitalizeName = (name) => {
-    // If name is null, undefined, or not a string, return an empty string
     if (!name || typeof name !== 'string') {
         return ""; 
     }
@@ -1000,14 +957,14 @@ export default function StudentManagement() {
       return current === null || current === undefined ? defaultValue : current;
     };
 
+    // Determine if the student is an LC student based on the list they came from
+    const isLCStudent = lcList.some(lc => lc._id === student._id);
 
-    if (selectedCard === "Total") {
+    if (selectedCard === "Total" || selectedCard === "New Admission") {
       return (
         <tr key={student._id || student.id} className="hover:bg-gray-50">
-          {/* Use safeRead for all nested and optional properties */}
           <td className="p-2 border">{safeRead('admission.admissionno')}</td>
           <td className="p-2 border">
-            {/* 🟢 Using optional chaining ?. and default empty string || '' to prevent calling capitalizeName with null/undefined */}
             {capitalizeName(safeRead('firstname'))}{" "}
             {capitalizeName(safeRead('middlename'))}{" "}
             {capitalizeName(safeRead('lastname'))}
@@ -1020,39 +977,31 @@ export default function StudentManagement() {
           <td className="p-2 border">{safeRead('gender')}</td>
           <td className="p-2 border">{safeRead('parent.primarycontact')}</td>
           <td className="p-2 border">
-            {student.status === true || student.status === "Active" ? "Active" : "Inactive"}
+            {/* Use isLCStudent flag for accurate status if needed, otherwise rely on the student.status field */}
+            {isLCStudent ? "Inactive (LC)" : (student.status === true || student.status === "Active" ? "Active" : "Inactive")}
           </td>
-          <td className="p-3 border">
-            <Link to={`edit-student/${student._id}?mode=view`} className="text-gray-600 hover:text-blue-800 hover:underline mr-3">
-              View
-            </Link>
-            <Link to={`edit-student/${student._id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
-              Edit
-            </Link>
-          </td>
-        </tr>
-      );
-    } else if (selectedCard === "New Admission") {
-      return (
-        <tr key={student.id} className="hover:bg-gray-50">
-          <td className="p-2 border">{safeRead('admission.admissionno')}</td>
-          <td className="p-2 border">
-            {safeRead('firstname')} {safeRead('middlename')} {safeRead('lastname')}
-          </td>
-          <td className="p-2 border">{safeRead('admission.admissionstd')}</td>
-          <td className="p-2 border">{safeRead('gender')}</td>
-          <td className="p-2 border">{safeRead('parent.primarycontact')}</td>
-          <td className="p-2 border">
-            {student.status === true || student.status === "Active" ? "Active" : "Inactive"}
-          </td>
+          {/* Only show Action column for Total View */}
+          {selectedCard === "Total" && (
+            <td className="p-3 border">
+              <Link to={`edit-student/${student._id}?mode=view`} className="text-gray-600 hover:text-blue-800 hover:underline mr-3">
+                View
+              </Link>
+              <Link to={`edit-student/${student._id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                Edit
+              </Link>
+            </td>
+          )}
         </tr>
       );
     } else if (selectedCard === "LC Students") {
       return (
         <tr key={student.id} className="hover:bg-gray-50">
-          <td className="p-2 border">{safeRead('admission.admissionno')}</td>
+          {/* LC No. is generally the Admission No. for LC students in this schema */}
+          <td className="p-2 border">{safeRead('lcno') || safeRead('admission.admissionno')}</td>
           <td className="p-2 border">
-            {safeRead('firstname')} {safeRead('middlename')} {safeRead('lastname')}
+            {capitalizeName(safeRead('firstname'))}{" "}
+            {capitalizeName(safeRead('middlename'))}{" "}
+            {capitalizeName(safeRead('lastname'))}
           </td>
           <td className="p-2 border">{safeRead('admission.grno')}</td>
           <td className="p-2 border">{safeRead('admission.admissionstd')}</td>
@@ -1060,7 +1009,7 @@ export default function StudentManagement() {
           <td className="p-2 border">{safeRead('gender')}</td>
           <td className="p-2 border">{safeRead('parent.primarycontact')}</td>
           <td className="p-2 border">
-            {student.status ? student.status : "Inactive"}
+            {safeRead('status') || "Inactive"}
           </td>
         </tr>
       );
