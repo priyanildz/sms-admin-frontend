@@ -162,6 +162,7 @@
 // };
 
 // export default AcademicAttendance;
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import SelectField from "../components/SelectField";
