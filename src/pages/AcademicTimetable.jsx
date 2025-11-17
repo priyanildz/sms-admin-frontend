@@ -817,7 +817,7 @@ const AcademicTimetable = () => {
                 <div className="text-center">
                   <h2>Timetable for Standard {selectedRow?.standard} - Division {selectedRow?.division || 'N/A'}</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                        **{currentWeekStartDate}** to **{weekEndDate}**                   </p>
+                        {currentWeekStartDate} to {weekEndDate}                 </p>
                 </div>
                 {/* Next Week Button */}
                 <button
