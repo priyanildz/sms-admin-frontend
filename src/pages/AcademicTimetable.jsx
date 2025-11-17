@@ -755,7 +755,8 @@ const AcademicTimetable = () => {
                 <div className="text-center">
                   <h2>Timetable for Standard {selectedRow?.standard} - Division {selectedRow?.division || 'N/A'}</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Created by: {selectedRow?.submittedby || 'N/A'} (Period: {selectedRow?.timing || '07:00 - 13:00'})
+{/*                     Created by: {selectedRow?.submittedby || 'N/A'}  */}
+(Period: {selectedRow?.timing || '07:00 - 13:00'})
                   </p>
                 </div>
                 {/* Next Button */}
@@ -807,7 +808,7 @@ const AcademicTimetable = () => {
                                 // Period or Break/Lunch Label
                                 <div className={`p-1 rounded ${bgClass} font-semibold leading-tight`}>
                                   {cellData.subject}
-                                  {cellData.periodNumber && <span className="text-xs font-normal opacity-80 ml-1">({cellData.periodNumber})</span>}
+{/*                                   {cellData.periodNumber && <span className="text-xs font-normal opacity-80 ml-1">({cellData.periodNumber})</span>} */}
                                 </div>
                               )}
                               {cellData.teacher && !cellData.isBreak && (
