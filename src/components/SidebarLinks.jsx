@@ -78,7 +78,7 @@ export const academicLinks = [
   { to: "/academics-subject-allotment", text: "Subject Allotment", icon: faUserEdit },
   { to: "/academics-timetable-creation", text: "Timetable Creation", icon: faCalendarAlt },
   { to: "/academics-proxy-management", text: "Proxy Management", icon: faUserClock },
-  { to: "/academics-block-allotment", text: "Block Allotment", icon: faThLarge },
+  // { to: "/academics-block-allotment", text: "Block Allotment", icon: faThLarge },
 ];
 
 // Transport Links for Sidebar
@@ -109,8 +109,8 @@ export const profileLinks = [
 export const examLinks = [
   { to: "/exams", text: "Exam Timetable", icon: faCalendarAlt },
   { to: "/exams-question-paper", text: "Question Papers", icon: faBookOpen },
-  { to: "/exams-assign-blocks", text: "Assign Blocks", icon: faClipboard },
-  { to: "/exams-supervisor-allotment", text: "Supervisor Allotment", icon: faTasks },
+  // { to: "/exams-assign-blocks", text: "Assign Blocks", icon: faClipboard },
+  // { to: "/exams-supervisor-allotment", text: "Supervisor Allotment", icon: faTasks },
   { to: "/exams-paper-eval", text: "Paper Evaluation", icon: faCheckCircle },
   { to: "/exams-paper-recheck", text: "Recheck Requests", icon: faRedoAlt },
   { to: "/exams-report-card", text: "Report Cards", icon: faFileAlt },
