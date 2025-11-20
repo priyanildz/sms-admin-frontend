@@ -392,7 +392,7 @@ export default function ClassAttendancePage() {
   ];
 
   const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-  const divOptions = ["A", "B", "C"];
+  const divOptions = ["A", "B", "C", "D", "E"];
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
   const handleViewChange = (newView) => setView(newView);

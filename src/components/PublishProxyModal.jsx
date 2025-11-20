@@ -673,7 +673,12 @@ const PublishProxyModal = ({
 
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-opacity-40 z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 flex items-center justify-center z-50"
+style={{ 
+                // Using RGBA to create the dimming effect without blurring the backdrop
+                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
+            }}
+>
       <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg">
         <h3 className="text-xl font-semibold mb-4 text-center">
           Proxy Creation

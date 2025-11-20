@@ -234,13 +234,31 @@
 
 // export default ClassTimeTable;
 
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import SelectField from "../components/SelectField";
 // --- Import the API Base URL from the config file (Assumed Import) ---
 import { API_BASE_URL } from '../config'; 
+import { FaCalendarAlt } from 'react-icons/fa'; // Added for date icon
 
-const AcademicTimetable = () => {
+// Helper to get the date for a given weekday, assuming Monday is the start date (24/11/2025 as a reference)
+const getDayDate = (dayName, year) => {
+    // We'll use a fixed reference date (e.g., Monday 24/11/2025) and calculate the rest of the week
+    // NOTE: This assumes the API data covers a standard Mon-Sun week structure.
+    const referenceDate = new Date(`11/24/${year}`); // Monday
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const dayIndex = days.indexOf(dayName);
+
+    if (dayIndex !== -1) {
+        const date = new Date(referenceDate);
+        date.setDate(referenceDate.getDate() + dayIndex);
+        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    }
+    return '';
+};
+
+const ClassTimeTable = () => { // Component renamed to ClassTimeTable
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState(false);
@@ -259,14 +277,14 @@ const AcademicTimetable = () => {
   const stdOptions = ["1","2","3","4","5","6","7","8","9","10"];
   const divOptions = ["A", "B", "C", "D"];
   const timingOptions = ["08:00 - 12:40", "01:00 - 06:00"];
-  const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  
+  const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
   // Fetch timetable data from API
   const fetchTimetableData = async () => {
     setLoading(true);
     setError("");
     try {
-      // FIX 1: Using imported API_BASE_URL
       const response = await fetch(`${API_BASE_URL}api/timetables`,{
         headers:{
           auth:'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU='
@@ -302,57 +320,62 @@ const AcademicTimetable = () => {
       year: parseInt(year),
       from: fromDate,
       to: toDate,
-      timetable: weekdays.map(day => ({
-        day: day,
-        periods: [
-          {
-            periodNumber: 1,
-            subject: "Maths",
-            teacher: null,
-            time: "09:00-09:30"
-          },
-          {
-            periodNumber: 2,
-            subject: "Science",
-            teacher: null,
-            time: "09:30-10:00"
-          },
-          {
-            periodNumber: 3,
-            subject: "English",
-            teacher: null,
-            time: "10:00-10:30"
-          },
-          {
-            periodNumber: 4,
-            subject: "Break",
-            teacher: null,
-            time: "10:30-11:00"
-          },
-          {
-            periodNumber: 5,
-            subject: "Hindi",
-            teacher: null,
-            time: "11:00-11:30"
-          },
-          {
-            periodNumber: 6,
-            subject: "EVS",
-            teacher: null,
-            time: "11:30-12:00"
-          },
-          {
-            periodNumber: 7,
-            subject: "PT",
-            teacher: null,
-            time: "12:00-12:40"
-          }
-        ]
-      }))
+      timetable: weekdays.map(day => {
+        if (day === "Saturday" || day === "Sunday") {
+          // Send empty periods for Sat/Sun to API when creating new
+          return { day: day, periods: [] };
+        }
+        return {
+          day: day,
+          periods: [
+            {
+              periodNumber: 1,
+              subject: "Maths",
+              teacher: "Teacher 1", // Retained mock name in creation only
+              time: "09:00-09:30"
+            },
+            {
+              periodNumber: 2,
+              subject: "Science",
+              teacher: "Teacher 2",
+              time: "09:30-10:00"
+            },
+            {
+              periodNumber: 3,
+              subject: "English",
+              teacher: "Teacher 3",
+              time: "10:00-10:30"
+            },
+            {
+              periodNumber: 4,
+              subject: "Break",
+              teacher: null,
+              time: "10:30-11:00"
+            },
+            {
+              periodNumber: 5,
+              subject: "Hindi",
+              teacher: "Teacher 4",
+              time: "11:00-11:30"
+            },
+            {
+              periodNumber: 6,
+              subject: "EVS",
+              teacher: "Teacher 5",
+              time: "11:30-12:00"
+            },
+            {
+              periodNumber: 7,
+              subject: "PT",
+              teacher: "Teacher 6",
+              time: "12:00-12:40"
+            }
+          ]
+        }
+      })
     };
 
     try {
-      // FIX 2: Using imported API_BASE_URL
       const response = await fetch(`${API_BASE_URL}api/timetables`, {
         method: 'POST',
         headers: {
@@ -388,14 +411,9 @@ const AcademicTimetable = () => {
 
     const timeSlots = new Set();
     
-    // Get all unique time slots (excluding breaks)
-    const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-
     timetable.timetable.forEach(day => {
       day.periods.forEach(period => {
-        if (period.subject !== "Break") {
-          timeSlots.add(period.time);
-        }
+        timeSlots.add(period.time);
       });
     });
 
@@ -404,10 +422,15 @@ const AcademicTimetable = () => {
     return sortedTimeSlots.map(timeSlot => {
       const row = { time: timeSlot };
       
-      daysOfWeek.forEach(dayName => {
+      weekdays.forEach(dayName => {
         const dayData = timetable.timetable.find(d => d.day === dayName);
         const period = dayData?.periods.find(p => p.time === timeSlot);
-        row[dayName] = period?.subject || "-";
+        
+        // FIX: Prioritize teacherName from API, fallback to raw 'teacher' (ID)
+        row[dayName] = { 
+          subject: period?.subject || "-",
+          teacher: period?.teacherName || period?.teacher || null 
+        };
       });
 
       return row;
@@ -421,6 +444,14 @@ const AcademicTimetable = () => {
       row.standard.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.division.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Helper function to determine cell background based on subject type
+  const getCellClasses = (subject) => {
+    if (subject === "Break") return "bg-gray-100 text-gray-700"; // Lighter gray for breaks
+    if (subject === "Lunch") return "bg-yellow-200 text-yellow-800";
+    if (subject === "-") return "bg-red-50 text-red-600"; // Muted red background for empty slots
+    return "bg-blue-100 text-blue-800"; // Periods
+  };
 
   return (
     <MainLayout>
@@ -439,7 +470,7 @@ const AcademicTimetable = () => {
             </div>
           )}
 
-          {/* Top bar - Search + Add/Publish */}
+          {/* Top bar - Search ONLY */}
           <div className="flex justify-between items-center">
             <input
               type="text"
@@ -448,74 +479,51 @@ const AcademicTimetable = () => {
               placeholder="Search by standard or division..."
               className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
-            {!viewMode ? (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                disabled={loading}
-              >
-                Add New Timetable
-              </button>
-            ) : (
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-600">
-                  Academic Year: {selectedRow?.year} 
-                  {/* Period: {selectedRow?.from && new Date(selectedRow.from).toLocaleDateString()} - {selectedRow?.to && new Date(selectedRow.to).toLocaleDateString()} */}
-                </div>
-                <button 
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-                  onClick={() => alert("Publish functionality to be implemented")}
-                >
-                  Publish
-                </button>
-              </div>
-            )}
           </div>
 
           {/* View Mode */}
           {viewMode ? (
             <>
-              {/* Title with navigation arrows */}
-              <div className="flex items-center justify-between text-xl font-semibold">
-                <button
-                  className="text-blue-600 hover:text-blue-800 text-2xl p-2 rounded hover:bg-blue-50 transition-colors"
-                  onClick={() => {
-                    const currentIndex = timetableData.findIndex(
-                      (item) => item._id === selectedRow._id
-                    );
-                    if (currentIndex > 0) {
-                      setSelectedRow(timetableData[currentIndex - 1]);
-                    }
-                  }}
-                  disabled={
-                    timetableData.findIndex((item) => item._id === selectedRow?._id) === 0
-                  }
-                >
-                  ←
-                </button>
-                <div className="text-center">
-                  <h2>Timetable for Standard {selectedRow?.standard} - Division {selectedRow?.division}</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Created by: {selectedRow?.submittedby || 'N/A'}
-                  </p>
+              {/* Title and Class Teacher Info (FIXED ALIGNMENT) */}
+              <div className="flex flex-col items-center justify-between text-xl font-semibold mb-4">
+                
+                {/* 1. Timetable Title */}
+                <div className="flex items-center justify-center w-full">
+{/*                   <button className="text-blue-600 hover:text-blue-800 text-2xl p-2 rounded hover:bg-blue-50 transition-colors"
+                    onClick={() => {
+                      const currentIndex = timetableData.findIndex((item) => item._id === selectedRow._id);
+                      if (currentIndex > 0) {
+                        setSelectedRow(timetableData[currentIndex - 1]);
+                      }
+                    }}
+                    disabled={timetableData.findIndex((item) => item._id === selectedRow?._id) === 0}
+                  >
+                    ←
+                  </button> */}
+                  <h2 className="mx-4">Timetable for Standard {selectedRow?.standard} - Division {selectedRow?.division}</h2>
+{/*                   <button className="text-blue-600 hover:text-blue-800 text-2xl p-2 rounded hover:bg-blue-50 transition-colors"
+                    onClick={() => {
+                      const currentIndex = timetableData.findIndex((item) => item._id === selectedRow._id);
+                      if (currentIndex < timetableData.length - 1) {
+                        setSelectedRow(timetableData[currentIndex + 1]);
+                      }
+                    }}
+                    disabled={timetableData.findIndex((item) => item._id === selectedRow?._id) === timetableData.length - 1}
+                  >
+                    →
+                  </button> */}
                 </div>
-                <button
-                  className="text-blue-600 hover:text-blue-800 text-2xl p-2 rounded hover:bg-blue-50 transition-colors"
-                  onClick={() => {
-                    const currentIndex = timetableData.findIndex(
-                      (item) => item._id === selectedRow._id
-                    );
-                    if (currentIndex < timetableData.length - 1) {
-                      setSelectedRow(timetableData[currentIndex + 1]);
-                    }
-                  }}
-                  disabled={
-                    timetableData.findIndex((item) => item._id === selectedRow?._id) ===
-                    timetableData.length - 1
-                  }
-                >
-                  →
-                </button>
+
+                {/* 2. Class Teacher (Aligned right, with curves) */}
+                <div className="flex justify-end w-full mt-2"> {/* New line below title */}
+                    <div className="flex items-center text-sm">
+                        <span className="font-semibold mr-2 text-base text-gray-700">Class Teacher</span>
+                        <div className="border border-black px-3 py-1 shadow-sm text-base rounded-lg"> {/* Added rounded-lg */}
+                            {selectedRow?.classteacher || 'N/A'}
+                        </div>
+                    </div>
+                </div>
+
               </div>
 
               {/* Timetable Table */}
@@ -523,27 +531,76 @@ const AcademicTimetable = () => {
                 <table className="min-w-full border border-gray-300 rounded-lg">
                   <thead className="bg-blue-100">
                     <tr>
-                      <th className="px-4 py-3 border font-semibold">Time</th>
+                      <th className="px-4 py-3 border border-gray-300 font-semibold">Time</th>
                       {weekdays.map((day) => (
-                        <th key={day} className="px-4 py-3 border font-semibold">
-                          {day}
+                        <th 
+                          key={day} 
+                          className={`px-4 py-3 border border-gray-300 font-semibold ${day === 'Sunday' ? 'bg-amber-400 text-gray-800' : 'bg-blue-100'}`}
+                        >
+                          <div>{day}</div>
+                          <div className="text-xs font-normal mt-1 flex items-center justify-center gap-1">
+                            <FaCalendarAlt className="w-3 h-3"/> {getDayDate(day, selectedRow?.year || new Date().getFullYear().toString())}
+                          </div>
                         </th>
                       ))}
-                    </tr>
+                  </tr>
                   </thead>
                   <tbody className="bg-white">
                     {displayTimetable.map((row, rowIdx) => (
                       <tr key={rowIdx} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 border font-medium bg-gray-50">
+                        <td className="px-4 py-3 border border-gray-300 font-medium bg-gray-50">
                           {row.time}
                         </td>
-                        {weekdays.map((day) => (
-                          <td key={day} className="px-4 py-3 border text-center">
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                              {row[day]}
-                            </span>
-                          </td>
-                        ))}
+                        
+                        {weekdays.map((day) => {
+                          const period = row[day];
+                          const subject = period.subject;
+                          const teacherValue = period.teacher; // Name or ID
+                          const isHoliday = day === 'Sunday';
+
+                          if (isHoliday) {
+                            if (rowIdx === 0) {
+                              return (
+                                <td 
+                                  key={day} 
+                                  rowSpan={displayTimetable.length} 
+                                  className="px-4 py-3 border border-gray-300 text-center align-middle bg-amber-400 text-gray-800 font-bold"
+                                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', verticalAlign: 'middle', height: '100%', fontSize: '18px', letterSpacing: '5px' }}
+                                >
+                                    WEEKLY HOLIDAY
+                                </td>
+                              );
+                            }
+                            return null;
+                          }
+
+                          let bgClass = '';
+                          
+                          if (subject === "Break" || subject === "Lunch") {
+                            bgClass = 'bg-gray-100'; 
+                          } else if (subject === "-") {
+                                bgClass = 'bg-white'; 
+                            }
+                            else {
+                            bgClass = 'bg-white'; 
+                          }
+
+                          return (
+                            <td key={day} className={`px-2 py-3 border border-gray-300 text-center text-sm align-top ${bgClass}`}>
+                              {subject !== '-' && (
+                                  <div className={`p-1 rounded ${getCellClasses(subject)} font-semibold leading-tight`}>
+                                      {subject}
+                                  </div>
+                              )}
+                                {/* Displaying Teacher Name (if available) or ID (if name is null) */}
+                              {teacherValue && subject !== 'Break' && subject !== 'Lunch' && subject !== '-' && (
+                                  <div className="mt-1 text-xs text-gray-600 font-medium italic">
+                                      ({teacherValue})
+                                  </div>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
@@ -574,30 +631,27 @@ const AcademicTimetable = () => {
                 <table className="min-w-full border border-gray-300 rounded-lg">
                   <thead className="bg-blue-100">
                     <tr>
-                      <th className="px-4 py-3 border font-semibold">Standard</th>
-                      <th className="px-4 py-3 border font-semibold">Division</th>
-                      <th className="px-4 py-3 border font-semibold">Academic Year</th>
-                      <th className="px-4 py-3 border font-semibold">Created By</th>
-                      <th className="px-4 py-3 border font-semibold">Action</th>
+                      <th className="px-4 py-3 border border-gray-300 font-semibold">Standard</th>
+                      <th className="px-4 py-3 border border-gray-300 font-semibold">Division</th>
+                      {/* REMOVED: Academic Year Column */}
+                      <th className="px-4 py-3 border border-gray-300 font-semibold">Created By</th>
+                      <th className="px-4 py-3 border border-gray-300 font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
                     {filteredTimetableData.length > 0 ? (
                       filteredTimetableData.map((row, idx) => (
                         <tr key={row._id || idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 border text-center font-medium">
+                          <td className="px-4 py-3 border border-gray-300 text-center font-medium">
                             {row.standard}
                           </td>
-                          <td className="px-4 py-3 border text-center font-medium">
+                          <td className="px-4 py-3 border border-gray-300 text-center font-medium">
                             {row.division}
                           </td>
-                          <td className="px-4 py-3 border text-center">
-                            {row.year}
-                          </td>
-                          <td className="px-4 py-3 border text-center">
+                          <td className="px-4 py-3 border border-gray-300 text-center">
                             {row.submittedby || 'N/A'}
                           </td>
-                          <td className="px-4 py-3 border text-center">
+                          <td className="px-4 py-3 border border-gray-300 text-center">
                             <button
                               className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
                               onClick={() => {
@@ -612,7 +666,7 @@ const AcademicTimetable = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan="4" className="px-4 py-8 border border-gray-300 text-center text-gray-500">
                           {loading ? "Loading..." : "No timetables found"}
                         </td>
                       </tr>
@@ -711,4 +765,4 @@ const AcademicTimetable = () => {
   );
 };
 
-export default AcademicTimetable;
+export default ClassTimeTable;
