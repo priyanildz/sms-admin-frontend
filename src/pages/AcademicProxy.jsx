@@ -443,7 +443,6 @@
 // export default AcademicProxy;
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
@@ -493,7 +492,7 @@ const AcademicProxy = () => {
     }
   };
     
-    // 🔹 NEW: Fetch Standards and Divisions from Allocations (GET /api/allotments)
+    // 🔹 Fetch Standards and Divisions from Allocations (GET /api/allotments)
     const fetchAvailableStandardsAndDivisions = async () => {
         try {
             const res = await axios.get(`${API_BASE_URL}api/allotments`, { 
@@ -535,6 +534,26 @@ const AcademicProxy = () => {
             setAllotmentList([]);
             setAvailableStandards([]);
             setDivisionStandardMap({});
+        }
+    };
+
+    // 🔹 NEW: Delete Proxy Function
+    const deleteProxy = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this proxy entry?")) {
+            return;
+        }
+
+        try {
+            await axios.delete(`${API_BASE_URL}api/proxies/${id}`, {
+                headers: { auth: AUTH_HEADER }
+            });
+
+            // Update local state to remove the deleted proxy
+            setProxyList(prev => prev.filter(proxy => proxy._id !== id));
+            alert("Proxy deleted successfully.");
+        } catch (err) {
+            console.error("Error deleting proxy:", err);
+            alert("Failed to delete proxy entry.");
         }
     };
 
@@ -613,7 +632,7 @@ const AcademicProxy = () => {
         <div className="p-6 space-y-6">
           {/* Header */}
           <h2 className="text-center text-2xl font-semibold mb-4">
-            📝 Proxy Management
+            Proxy Management
           </h2>
           
           {/* Top bar (Search + Publish Button) */}
@@ -682,31 +701,33 @@ const AcademicProxy = () => {
                   <th className="px-4 py-2 border text-center">Subject</th>
                   <th className="px-4 py-2 border text-center">From Teacher (Absent)</th>
                   <th className="px-4 py-2 border text-center">To Teacher (Proxy)</th>
+                    <th className="px-4 py-2 border text-center">Action</th> {/* NEW HEADER */}
                 </tr>
               </thead>
               <tbody className="bg-white">
                 {filteredProxies.length > 0 ? (
-                  filteredProxies.map((proxy, idx) => {
-                    const proxyDate = new Date(proxy.date).toLocaleDateString('en-GB');
-                    // Names are safe to access due to controller population
-                    const fromName = `${proxy.fromteacher?.firstname} ${proxy.fromteacher?.lastname}`;
-                    const toName = `${proxy.toteacher?.firstname} ${proxy.toteacher?.lastname}`;
-
-                    return (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 border text-center">{proxyDate}</td>
+                  filteredProxies.map((proxy, idx) => ( // Fix applied: using parentheses ( ) to return JSX
+                    <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 border text-center">{new Date(proxy.date).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-2 border text-center">{`${proxy.standard}-${proxy.division}`}</td>
                         <td className="px-4 py-2 border text-center">{proxy.lecno}</td>
                         <td className="px-4 py-2 border text-center">{proxy.subject}</td>
-                        <td className="px-4 py-2 border text-center font-medium text-red-700">{fromName}</td>
-                        <td className="px-4 py-2 border text-center font-medium text-green-700">{toName}</td>
-                      </tr>
-                    );
-                  })
+                        <td className="px-4 py-2 border text-center font-medium text-red-700">{`${proxy.fromteacher?.firstname} ${proxy.fromteacher?.lastname}`}</td>
+                        <td className="px-4 py-2 border text-center font-medium text-green-700">{`${proxy.toteacher?.firstname} ${proxy.toteacher?.lastname}`}</td>
+                        <td className="px-4 py-2 border text-center">
+                            <button
+                                onClick={() => deleteProxy(proxy._id)}
+                                className="text-red-600 hover:text-red-800 hover:underline font-medium text-sm"
+                            >
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       className="px-4 py-6 border text-center text-gray-500"
                     >
                       No proxy records found for the selected filters.
