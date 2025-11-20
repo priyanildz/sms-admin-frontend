@@ -646,7 +646,7 @@ const AcademicProxy = () => {
         <div className="p-6 space-y-6">
           {/* Header */}
           <h2 className="text-center text-2xl font-semibold mb-4">
-            📝 Proxy Management
+            Proxy Management
           </h2>
           
           {/* Top bar (Search + Publish Button) */}
