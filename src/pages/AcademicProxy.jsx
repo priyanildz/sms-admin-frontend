@@ -444,7 +444,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
@@ -473,8 +472,8 @@ const AcademicProxy = () => {
   const [proxyList, setProxyList] = useState([]);
     
     // --- NEW STATES FOR FILTERED DROPDOWNS (Populated from /api/allotments) ---
+    const [allotmentList, setAllotmentList] = useState([]); // Stores all allotments for local filtering
     const [availableStandards, setAvailableStandards] = useState([]);
-    // Maps standard to an array of available divisions, e.g., { "5": ["A", "B", "C"] }
     const [divisionStandardMap, setDivisionStandardMap] = useState({});
     
   const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU='; 
@@ -501,6 +500,8 @@ const AcademicProxy = () => {
                 headers: { auth: AUTH_HEADER }
             });
             const allocations = Array.isArray(res.data) ? res.data : [];
+            
+            setAllotmentList(allocations); // Store full list for modal subject filtering
             
             const standardsSet = new Set();
             const divisionMap = {}; 
@@ -531,6 +532,7 @@ const AcademicProxy = () => {
 
         } catch (err) {
             console.warn("Could not fetch available standards/divisions from allotments.");
+            setAllotmentList([]);
             setAvailableStandards([]);
             setDivisionStandardMap({});
         }
@@ -611,7 +613,7 @@ const AcademicProxy = () => {
         <div className="p-6 space-y-6">
           {/* Header */}
           <h2 className="text-center text-2xl font-semibold mb-4">
-            Proxy Management
+            📝 Proxy Management
           </h2>
           
           {/* Top bar (Search + Publish Button) */}
@@ -737,6 +739,7 @@ const AcademicProxy = () => {
               // Pass the filtered list and map to the modal
             stdOptions={availableStandards}
             divisionMap={divisionStandardMap} 
+            allotmentList={allotmentList} // Pass the allotment list for subject filtering
             divOptions={divisionStandardMap[modalStd] || []} // Division options depend on modalStd
           />
         </div>

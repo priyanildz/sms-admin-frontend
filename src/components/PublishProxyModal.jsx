@@ -482,7 +482,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 // --- Import the API Base URL from the config file (Assumed Import) ---
@@ -506,10 +505,11 @@ const PublishProxyModal = ({
   toTeacher,
   setToTeacher,
   teacherOptions,
-    // --- NEW PROPS FOR FILTERED DROPDOWNS ---
-    stdOptions, // Array of standards with timetables
-    divisionMap, // Map: { "5": ["A", "B", "C"] }
-    divOptions // Division options for the currently selected standard (passed from parent)
+    // --- PROPS FOR FILTERED DROPDOWNS ---
+    stdOptions, // Array of standards from allotments
+    divisionMap, // Map for all available divisions per standard
+    divOptions, // Division options for the currently selected standard
+    allotmentList, // Full list of allocations to filter subjects
 }) => {
   if (!isOpen) return null;
 
@@ -517,65 +517,58 @@ const PublishProxyModal = ({
   
   const [subjectOptionsState, setSubjectOptionsState] = useState([]);
 
-    // --- FIX 1: Set Default Standard (if available) when modal opens ---
+    // --- FIX 1: Set Default Standard when modal opens ---
     useEffect(() => {
         if (isOpen && !standard && stdOptions.length > 0) {
-             // Set default standard to the first available one 
             setStandard(stdOptions[0]);
         }
+        
+        // When closing, reset division too
+        if (!isOpen) {
+            setDivision("");
+        }
+        
     }, [isOpen, standard, stdOptions, setStandard]);
 
-    // --- SUBJECT FETCH LOGIC (FIX: Improved handling of 404/No Subjects) ---
+
+    // --- SUBJECT FILTERING LOGIC (FIXED: Filters locally from allotmentList) ---
     useEffect(() => {
-        if (!standard) {
+        // Run filter only if both standard and division are selected
+        if (!standard || !division) {
             setSubjectOptionsState([]);
             setSubject("");
             return;
         }
         
-        const fetchSubjects = async () => {
-            try {
-                if (!standard || standard === "") return;
-
-                const res = await axios.get(
-                    `${API_BASE_URL}api/subjects/${standard}`, // Use 'standard' state
-                    {
-                        headers: { auth: AUTH_HEADER },
-                    }
-                );
-
-                // Safely extract subjects from the expected backend structure
-                const dataArray = Array.isArray(res.data) ? res.data : (res.data.subjects || []);
-                const subjects = dataArray[0]?.subjectname || []; 
-
-                const formattedSubjects = subjects.map((sub) => ({
-                    label: sub,
-                    value: sub,
-                }));
-
-                setSubjectOptionsState(formattedSubjects);
-
-                // If the currently selected subject is no longer in the list, clear it
-                if (subject && !subjects.includes(subject)) {
-                    setSubject("");
-                }
-                
-            } catch (err) {
-                console.error(`Error fetching subjects for Standard ${standard}. Response Status: ${err.response?.status || 'Network Error'}`, err);
-                // Handle 404 by resetting options, showing 'No Subjects Available'
-                setSubjectOptionsState([]);
-                setSubject("");
-            }
-        };
-        fetchSubjects();
+        // 1. Filter allotments matching the selected standard and division
+        const matchingAllotments = allotmentList.filter(alloc => 
+            alloc.standards?.[0] === standard && alloc.divisions?.[0] === division
+        );
         
-        // Cleanup: Clear subjects when standard changes
-        return () => {
-            setSubjectOptionsState([]);
+        const subjectsSet = new Set();
+        
+        // 2. Extract subjects from the matching allotments
+        matchingAllotments.forEach(alloc => {
+            alloc.subjects?.forEach(sub => {
+                if (sub) subjectsSet.add(sub);
+            });
+        });
+        
+        const uniqueSubjects = Array.from(subjectsSet).sort();
+        
+        const formattedSubjects = uniqueSubjects.map((sub) => ({
+            label: sub,
+            value: sub,
+        }));
+        
+        setSubjectOptionsState(formattedSubjects);
+
+        // If the currently selected subject is no longer valid, clear it
+        if (subject && !uniqueSubjects.includes(subject)) {
             setSubject("");
-        };
-        
-    }, [standard, setSubject]);
+        }
+
+    }, [standard, division, allotmentList, subject, setSubject]);
 
     // --- Validation Check (Mandatory fields and teacher conflict) ---
     const validateInputs = () => {
@@ -619,12 +612,7 @@ const PublishProxyModal = ({
 
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50"
-style={{ 
-                // Using RGBA to create the dimming effect without blurring the backdrop
-                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
-            }}
->
+    <div className="fixed inset-0 flex items-center justify-center bg-opacity-40 z-50 backdrop-blur-sm">
       <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg">
         <h3 className="text-xl font-semibold mb-4 text-center">
           Proxy Creation
@@ -661,9 +649,11 @@ style={{
               value={division}
               onChange={(e) => setDivision(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-              disabled={!standard} // Disable until standard is selected
+              disabled={!standard || divOptions.length === 0} // Disable until standard is selected AND divisions are loaded
             >
-              <option value="">Select Division</option>
+              <option value="">
+                    {!standard ? "Select Standard first" : (divOptions.length === 0 ? "No Divisions Allotted" : "Select Division")}
+                </option>
               {divOptions.map((div) => (
                 <option key={div} value={div}>
                   {div}
@@ -708,13 +698,13 @@ style={{
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-            disabled={!standard || subjectOptionsState.length === 0}
+            disabled={!standard || !division || subjectOptionsState.length === 0}
           >
             <option value="">
               {
-                !standard 
-                ? "Select Standard first" 
-                : (subjectOptionsState.length > 0 ? "Select Subject" : "No Subjects Available")
+                !standard || !division 
+                ? "Select Standard and Division first" 
+                : (subjectOptionsState.length > 0 ? "Select Subject" : "No Subjects Allotted for this Std/Div")
               }
             </option>
             {subjectOptionsState.map((s, idx) => (
