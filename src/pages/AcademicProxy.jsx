@@ -443,6 +443,7 @@
 // export default AcademicProxy;
 
 
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
@@ -470,11 +471,12 @@ const AcademicProxy = () => {
   const [teacherOptions, setTeacherOptions] = useState([]);
   const [proxyList, setProxyList] = useState([]);
     
-    // --- NEW STATES FOR FILTERED DROPDOWNS (Populated from /api/allotments) ---
-    const [allotmentList, setAllotmentList] = useState([]); // Stores all allotments for local filtering
-    const [availableStandards, setAvailableStandards] = useState([]);
-    const [divisionStandardMap, setDivisionStandardMap] = useState({});
-    
+    // --- NEW CACHED DATA STATES ---
+    const [allotmentList, setAllotmentList] = useState([]); 
+    const [fullTimetableData, setFullTimetableData] = useState([]); // CACHE ALL TIMETABLES
+    const [availableStandards, setAvailableStandards] = useState([]);
+    const [divisionStandardMap, setDivisionStandardMap] = useState({});
+    
   const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU='; 
 
   // 🔹 Reusable function to fetch proxy list
@@ -521,7 +523,6 @@ const AcademicProxy = () => {
 
             const sortedStandards = Array.from(standardsSet).sort((a, b) => parseInt(a) - parseInt(b));
             
-            // Convert Sets to sorted Arrays
             for (const std in divisionMap) {
                 divisionMap[std] = Array.from(divisionMap[std]).sort();
             }
@@ -537,7 +538,20 @@ const AcademicProxy = () => {
         }
     };
 
-    // 🔹 NEW: Delete Proxy Function
+    // 🔹 NEW: Fetch ALL Timetable Data for Client-Side Conflict Check
+    const fetchFullTimetableData = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}api/timetables`, {
+                headers: { auth: AUTH_HEADER }
+            });
+            setFullTimetableData(Array.isArray(res.data) ? res.data : []);
+        } catch (err) {
+            console.error("Error fetching full timetable data:", err);
+            setFullTimetableData([]);
+        }
+    }
+
+    // 🔹 Delete Proxy Function
     const deleteProxy = async (id) => {
         if (!window.confirm("Are you sure you want to delete this proxy entry?")) {
             return;
@@ -548,7 +562,6 @@ const AcademicProxy = () => {
                 headers: { auth: AUTH_HEADER }
             });
 
-            // Update local state to remove the deleted proxy
             setProxyList(prev => prev.filter(proxy => proxy._id !== id));
             alert("Proxy deleted successfully.");
         } catch (err) {
@@ -583,6 +596,7 @@ const AcademicProxy = () => {
     fetchStaff();
     fetchProxies();
     fetchAvailableStandardsAndDivisions();
+    fetchFullTimetableData(); // Fetch all timetables for conflict check
   }, []);
 
 
@@ -632,7 +646,7 @@ const AcademicProxy = () => {
         <div className="p-6 space-y-6">
           {/* Header */}
           <h2 className="text-center text-2xl font-semibold mb-4">
-            Proxy Management
+            📝 Proxy Management
           </h2>
           
           {/* Top bar (Search + Publish Button) */}
@@ -701,12 +715,12 @@ const AcademicProxy = () => {
                   <th className="px-4 py-2 border text-center">Subject</th>
                   <th className="px-4 py-2 border text-center">From Teacher (Absent)</th>
                   <th className="px-4 py-2 border text-center">To Teacher (Proxy)</th>
-                    <th className="px-4 py-2 border text-center">Action</th> {/* NEW HEADER */}
+                    <th className="px-4 py-2 border text-center">Action</th> 
                 </tr>
               </thead>
               <tbody className="bg-white">
                 {filteredProxies.length > 0 ? (
-                  filteredProxies.map((proxy, idx) => ( // Fix applied: using parentheses ( ) to return JSX
+                  filteredProxies.map((proxy, idx) => ( 
                     <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-4 py-2 border text-center">{new Date(proxy.date).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-2 border text-center">{`${proxy.standard}-${proxy.division}`}</td>
@@ -714,14 +728,14 @@ const AcademicProxy = () => {
                         <td className="px-4 py-2 border text-center">{proxy.subject}</td>
                         <td className="px-4 py-2 border text-center font-medium text-red-700">{`${proxy.fromteacher?.firstname} ${proxy.fromteacher?.lastname}`}</td>
                         <td className="px-4 py-2 border text-center font-medium text-green-700">{`${proxy.toteacher?.firstname} ${proxy.toteacher?.lastname}`}</td>
-                        <td className="px-4 py-2 border text-center">
-                            <button
-                                onClick={() => deleteProxy(proxy._id)}
-                                className="text-red-600 hover:text-red-800 hover:underline font-medium text-sm"
-                            >
-                                Delete
-                            </button>
-                        </td>
+                        <td className="px-4 py-2 border text-center">
+                            <button
+                                onClick={() => deleteProxy(proxy._id)}
+                                className="text-red-600 hover:text-red-800 hover:underline font-medium text-sm"
+                            >
+                                Delete
+                            </button>
+                        </td>
                     </tr>
                   ))
                 ) : (
@@ -760,8 +774,9 @@ const AcademicProxy = () => {
               // Pass the filtered list and map to the modal
             stdOptions={availableStandards}
             divisionMap={divisionStandardMap} 
-            allotmentList={allotmentList} // Pass the allotment list for subject filtering
-            divOptions={divisionStandardMap[modalStd] || []} // Division options depend on modalStd
+            allotmentList={allotmentList} 
+            divOptions={divisionStandardMap[modalStd] || []}
+            fullTimetableData={fullTimetableData} // Pass all timetable data for conflict check
           />
         </div>
       </div>
