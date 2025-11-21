@@ -331,9 +331,6 @@ import axios from "axios";
 // --- Import the API Base URL from the config file ---
 import { API_BASE_URL } from "../config";
 
-// Define the base URL for your local backend API
-// const LOCAL_API_BASE_URL = "http://localhost:5000/api"; // REMOVED
-
 const ViewTestResults = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // get term-result ID from URL
@@ -342,7 +339,6 @@ const ViewTestResults = () => {
   useEffect(() => {
     const getTest = async () => {
       try {
-        // FIX: Using imported API_BASE_URL
         const response = await axios.get(`${API_BASE_URL}api/term-result/${id}`, {
           headers: {
             auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=",
@@ -458,7 +454,8 @@ const ViewTestResults = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {test.studentData.map((student, index) => (
+                      {/* FIX APPLIED: Use optional chaining to safely map over studentData */}
+                      {test.studentData?.map((student, index) => (
                         <tr key={index} className="text-gray-700 text-left">
                           <td className="py-2 px-4 border">{student.name}</td>
                           <td className="py-2 px-4 border">{student.marksObtained ?? "-"}</td>

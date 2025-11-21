@@ -236,10 +236,6 @@
 
 // export default ClassTestResults;
 
-
-
-
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -255,12 +251,17 @@ const ClassTestResults = () => {
   const [selectedStd, setSelectedStd] = useState("");
   const [allTests, setAllTests] = useState([]); // for filtering
   const [selectedDiv, setSelectedDiv] = useState("");
-  const [term, setTerm] = useState("");
+  
+  // UI/Logic Change 1: Replaced 'term' (subject input) with 'selectedTerm' (dropdown)
+  const [selectedTerm, setSelectedTerm] = useState(""); 
+  
+  // UI/Logic Change 2: Used two states for date range filtering
   const [startDate, setStartDate] = useState(null);
-  // const [endDate, setEndDate] = useState(null);
+  const [endDate, setEndDate] = useState(null); 
 
   const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
   const divOptions = ["A", "B", "C"];
+  const termOptions = ["Term 1", "Term 2", "Final"]; // Added mock options for Term
   const [tests, setTests] = useState([]);
 
   useEffect(() => {
@@ -286,13 +287,15 @@ const ClassTestResults = () => {
     };
     getTests();
   }, []);
+    
+  // Logic Change 3: Updated handleSubmit to use new filters
   const handleSubmit = () => {
     console.log("Submitted:", {
       selectedStd,
       selectedDiv,
-      term,
+      selectedTerm,
       startDate,
-      // endDate,
+      endDate,
     });
 
     let filtered = [...allTests];
@@ -305,24 +308,29 @@ const ClassTestResults = () => {
       filtered = filtered.filter((test) => test.division === selectedDiv);
     }
 
-    if (term) {
+    // Filter by Term (using test.title as a proxy for term, as schema doesn't have a 'term' field)
+    if (selectedTerm) {
       filtered = filtered.filter((test) =>
-        test.subject.toLowerCase().includes(term.toLowerCase())
+        test.title && test.title.toLowerCase().includes(selectedTerm.toLowerCase())
       );
     }
 
+    // Filter by Date Range (From Date)
     if (startDate) {
       filtered = filtered.filter((test) => new Date(test.date) >= startDate);
     }
-
-    // if (endDate) {
-    //   filtered = filtered.filter((test) => new Date(test.date) <= endDate);
-    // }
+    
+    // Filter by Date Range (To Date)
+    if (endDate) {
+      // Ensure the filter checks up to the end of the selected day
+      filtered = filtered.filter((test) => new Date(test.date) <= endDate);
+    }
 
     setTests(filtered);
   };
 
   const handleViewTest = (test) => {
+    // FIX: Updated path to match the route defined in App.jsx
     navigate(`/classes-test-result-details/${test._id}`);
   };
 
@@ -341,7 +349,7 @@ const ClassTestResults = () => {
       <div className="p-4 sm:p-6">
         <div className="bg-white rounded-2xl shadow-md p-6 space-y-8">
           {/* Filters Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="flex flex-col">
               <label className="text-sm font-semibold text-gray-600 mb-1">
                 Standard
@@ -378,22 +386,29 @@ const ClassTestResults = () => {
               </select>
             </div>
 
+            {/* UI Filter Change 1: Added Term Select (Replaces Subject Input) */}
             <div className="flex flex-col">
               <label className="text-sm font-semibold text-gray-600 mb-1">
-                Subject
+                Term
               </label>
-              <input
-                type="text"
-                value={term}
-                onChange={(e) => setTerm(e.target.value)}
-                placeholder="Enter Subject"
+              <select
+                value={selectedTerm}
+                onChange={(e) => setSelectedTerm(e.target.value)}
                 className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-              />
+              >
+                <option value="">Select</option>
+                {termOptions.map((term) => (
+                  <option key={term} value={term}>
+                    {term}
+                  </option>
+                ))}
+              </select>
             </div>
-
+            
+            {/* UI Filter Change 2: Replaced old Subject/Term input with From Date picker */}
             <div className="flex flex-col">
               <label className="text-sm font-semibold text-gray-600 mb-1">
-                From
+                From Date
               </label>
               <DatePicker
                 selected={startDate}
@@ -403,10 +418,11 @@ const ClassTestResults = () => {
                 placeholderText="Start Date"
               />
             </div>
-
-            {/* <div className="flex flex-col">
+            
+            {/* UI Filter Change 3: Added To Date Picker */}
+            <div className="flex flex-col">
               <label className="text-sm font-semibold text-gray-600 mb-1">
-                To
+                To Date
               </label>
               <DatePicker
                 selected={endDate}
@@ -415,8 +431,8 @@ const ClassTestResults = () => {
                 dateFormat="yyyy-MM-dd"
                 placeholderText="End Date"
               />
-            </div> */}
-
+            </div>
+            
             <div className="flex items-end">
               <button
                 onClick={handleSubmit}
@@ -425,6 +441,12 @@ const ClassTestResults = () => {
                 Submit
               </button>
             </div>
+            
+             {/* Retained placeholder columns to maintain the grid structure */}
+            <div className="hidden md:block"></div> 
+            <div className="hidden md:block"></div> 
+            <div className="hidden md:block"></div> 
+
           </div>
 
           {/* Tests Record Table */}

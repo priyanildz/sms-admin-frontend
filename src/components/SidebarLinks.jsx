@@ -64,10 +64,10 @@ export const backToDashboardLink = [
 export const classroomLinks = [
   { to: "/classes", text: "Student List", icon: faUserGraduate },
   { to: "/classes-timetable", text: "Timetable", icon: faCalendarAlt },
-  { to: "/classes-test-results", text: "Test Results", icon: faClipboardList },
-  { to: "/classes-attendance", text: "Attendance", icon: faCheckCircle },
-  { to: "/classes-exam-results", text: "Exam Results", icon: faBook },
   { to: "/classes-assessment", text: "Assessment", icon: faBullhorn },
+  { to: "/classes-attendance", text: "Attendance", icon: faCheckCircle },
+  { to: "/classes-test-results", text: "Test Results", icon: faClipboardList },
+  { to: "/classes-exam-results", text: "Exam Results", icon: faBook },
   { to: "/classes-syllabus-tracker", text: "Syllabus Tracker", icon: faClipboard },
 ];
 
