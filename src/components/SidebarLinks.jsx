@@ -12,6 +12,7 @@ import {
   faUserPlus,
   faCalendarCheck,
   faUmbrellaBeach,
+  faChalkboardUser,
   faClock,
   faUserShield,
   faCheckCircle,
@@ -53,6 +54,11 @@ export const staffLinks = [
   { to: "/staff-leave", text: "Leave", icon: faUmbrellaBeach },
   { to: "/staff-timetable", text: "Timetable", icon: faClock },
   { to: "/staff-roles-permissions", text: "Role & Permission", icon: faUserShield },
+  {
+    to: "/staff-class-assign", 
+    icon: faChalkboardUser, 
+    text: "Class Assign", 
+  },
 ];
 
 // Link to return to the dashboard

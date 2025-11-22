@@ -187,6 +187,8 @@
 // export default ExamResults;
 
 
+
+
 import React, { useState, useEffect } from "react"; 
 import MainLayout from "../layout/MainLayout";
 import axios from 'axios';
@@ -196,8 +198,8 @@ import { API_BASE_URL } from '../config';
 const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU='; 
 
 // --- Arrays for your dropdowns ---
-const stdOptions = ["1", "2", "3", "4", "5"];
-const divOptions = ["A", "B", "C", "D"];
+const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const divOptions = ["A", "B", "C", "D", "E"];
 const semOptions = ["1", "2"];
 
 export default function ExamResults() {

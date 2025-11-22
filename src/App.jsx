@@ -8,6 +8,7 @@ import RolesAndPermissions from "./pages/RolesAndPermissions";
 import StudentManagement from "./pages/StudentManagement";
 import StaffAttendancePage from "./pages/StaffAttendance";
 import StaffTimetable from "./pages/StaffTimetable";
+import ClassAssign from "./pages/ClassAssign";
 import AcademicAttendance from "./pages/AcademicAttendance";
 import AcademicSyllabus from "./pages/AcademicSyllabus";
 import AcademicSubject from "./pages/AcademicSubject";
@@ -74,6 +75,15 @@ function App() {
         <Route path="/staff-roles-permissions" element={<RolesAndPermissions />} />
         <Route path="/staff-attendance" element={<StaffAttendancePage />} />
         <Route path="/staff-timetable" element={<StaffTimetable />} />
+
+
+        {/* New Route for Class Assign */}
+        <Route path="/staff-class-assign" element={<ClassAssign />} /> 
+        
+        <Route path="/staff-registration" element={<StaffRegistration />} />
+
+
+
         <Route path="/students" element={<StudentManagement />} />
         <Route path="/classes" element={<ClassroomManagement />} />
         <Route path="/classes-timetable" element={<ClassTimeTable />} />
