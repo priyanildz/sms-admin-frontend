@@ -584,8 +584,7 @@
 
 
 
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import MainLayout from "../layout/MainLayout";
 import { FaBookOpen } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -594,8 +593,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 // --- Import the API Base URL from the config file (Assumed Import) ---
 import { API_BASE_URL } from '../config'; 
-
-// --- Mock Data Removed ---
 
 const ClassAssessment = () => {
   const navigate = useNavigate();
@@ -607,43 +604,62 @@ const ClassAssessment = () => {
   
   // State for real data fetching
   const [subjectsData, setSubjectsData] = useState([]); 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Set to false initially, useEffect runs immediately
   const [error, setError] = useState(null);
 
   const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-  const divOptions = ["A", "B", "C"];
+  const divOptions = ["A", "B", "C", "D", "E"];
 
   const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU="; 
-    
-  // --- Fetch Assessment Data from API ---
-  useEffect(() => {
-    const fetchAssessments = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // NOTE: The API call here typically needs standard/division filters 
-        // to be effective, but for the initial integration, we call the general endpoint.
-        // A future enhancement would be to re-fetch when selectedStd/selectedDiv change.
-        const response = await axios.get(`${API_BASE_URL}api/assessment`, {
-          headers: { auth: AUTH_HEADER },
-        });
-        
-        // Assuming API response data structure matches the needs: 
-        // [{ _id, subjectCovered, topicCovered, teacherName, ... }, ...]
-        setSubjectsData(response.data); 
-      } catch (err) {
-        console.error("Error fetching assessments:", err);
-        setError("Failed to load assessments.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAssessments();
     
-    // Add dependencies here if you want fetching to be triggered by filter changes
-  }, []); 
+  // --- Function to Fetch Assessment Data based on Filters ---
+  const fetchAssessments = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Format Date to YYYY-MM-DD string for the backend filter
+      const formattedDate = selectedDate 
+        ? selectedDate.toISOString().split('T')[0] 
+        : '';
+        
+      // Construct the query parameters
+      const params = {
+        standard: selectedStd || undefined,
+        division: selectedDiv || undefined,
+        date: formattedDate || undefined,
+        // The backend expects teacherId for filtering, but we send teacherName 
+        // as the input captures the name. If the backend needs the ID, 
+        // you would need to look up the ID before this call.
+        teacherName: classTeacher || undefined, 
+      };
+
+      // Filter out empty values to keep the URL clean
+      const filteredParams = Object.fromEntries(
+          Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+      );
+      
+      const queryString = new URLSearchParams(filteredParams).toString();
+
+      const response = await axios.get(`${API_BASE_URL}api/assessment?${queryString}`, {
+        headers: { auth: AUTH_HEADER },
+      });
+        
+      setSubjectsData(response.data); 
+    } catch (err) {
+      console.error("Error fetching assessments:", err);
+      // Check for specific error details if possible
+      setError("Failed to load assessments. Check console for 500 error details.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedStd, selectedDiv, selectedDate, classTeacher]); // Dependencies for useCallback
+
+  // --- Trigger Fetch when Filters Change ---
+  useEffect(() => {
+    // This runs whenever any filter state changes
+    fetchAssessments();
+  }, [fetchAssessments]);
 
 
   // Function to handle viewing a specific assessment, preserving filters
@@ -738,17 +754,17 @@ const ClassAssessment = () => {
           
           {/* Subject List */}
           <div className="flex flex-col gap-4">
-                {isLoading && (
-                    <p className="text-center text-blue-600 font-medium py-8">Loading assessments...</p>
-                )}
+                {isLoading && (
+                    <p className="text-center text-blue-600 font-medium py-8">Loading assessments...</p>
+                )}
 
-                {error && (
-                    <p className="text-center text-red-600 font-medium py-8">Error: {error}</p>
-                )}
+                {error && (
+                    <p className="text-center text-red-600 font-medium py-8">Error: {error}</p>
+                )}
 
-                {!isLoading && subjectsData.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">No assessments found for this filter.</p>
-                )}
+                {!isLoading && subjectsData.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">No assessments found for this filter.</p>
+                )}
 
             {subjectsData.map((item) => (
               <div
@@ -784,6 +800,7 @@ const ClassAssessment = () => {
             ))}
           </div>
         </div>
+        {/* Trigger initial fetch immediately after component mounts */}
       </div>
     </MainLayout>
   );

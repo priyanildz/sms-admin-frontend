@@ -353,7 +353,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -362,7 +361,7 @@ import axios from "axios";
 import { API_BASE_URL } from '../config'; 
 import { FaCalendarAlt, FaUpload, FaCheckCircle, FaTimesCircle, FaChevronLeft } from 'react-icons/fa'; 
 
-// --- REAL MOCK DATA (In a real app, this would be an API call) ---
+// --- REAL MOCK DATA (Replaced with internal data for filtering logic) ---
 const ALL_STUDENTS_DATA = [
     {
         "firstname": "Seth", "lastname": "Morris", 
@@ -376,7 +375,7 @@ const ALL_STUDENTS_DATA = [
     },
     {
         "firstname": "Aman", "lastname": "jhsdf", 
-        "admission": { "admissionstd": "5", "admissiondivision": "" }, // No division listed
+        "admission": { "admissionstd": "5", "admissiondivision": "" }, 
         "_id": "6909fc78d847ace792c5c1e0"
     },
     {
@@ -386,7 +385,7 @@ const ALL_STUDENTS_DATA = [
     },
     {
         "firstname": "Sneha", "lastname": "Rajput", 
-        "admission": { "admissionstd": "10", "admissiondivision": "" }, // No division listed
+        "admission": { "admissionstd": "10", "admissiondivision": "" }, 
         "_id": "69145f1c1eebe6627d6819bd"
     },
     {
@@ -396,21 +395,18 @@ const ALL_STUDENTS_DATA = [
     }
 ];
 
-// In a real application, you would pass in a specific class's students here.
-// For demonstration, we'll assign arbitrary upload status.
 const getStudentListForClass = (standard, division) => {
-    // Client-side filtering based on provided student data
-    return ALL_STUDENTS_DATA
-        .filter(student => 
-            student.admission.admissionstd === standard && 
-            student.admission.admissiondivision === division
-        )
-        .map((student, index) => ({
-            id: student._id,
-            name: `${student.firstname} ${student.lastname}`,
-            // Mock upload status for visualization: alternating true/false
-            uploaded: index % 2 === 0 
-        }));
+    // This logic simulates fetching the correct student list based on class context
+    return ALL_STUDENTS_DATA
+        .filter(student => 
+            student.admission.admissionstd === standard && 
+            student.admission.admissiondivision === division
+        )
+        .map((student, index) => ({
+            id: student._id,
+            name: `${student.firstname} ${student.lastname}`,
+            uploaded: index % 2 === 0 
+        }));
 };
 
 
@@ -419,7 +415,12 @@ const SubmissionStatusModal = ({ show, onClose, title, students }) => {
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50"
+ style={{ 
+                // Using RGBA to create the dimming effect without blurring the backdrop
+                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
+            }}
+>
             <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
                 <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">{title} Status</h3>
                 <div className="max-h-80 overflow-y-auto">
@@ -435,29 +436,28 @@ const SubmissionStatusModal = ({ show, onClose, title, students }) => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {/* FIX: Corrected JSX structure for conditional rendering */}
-                            {students.length === 0 ? (
-                                <tr>
-                                    <td colSpan="2" className="px-3 py-4 text-center text-sm text-gray-500">
-                                        No students found for this class.
-                                    </td>
-                                </tr>
-                            ) : (
-                                students.map((student) => (
-                                    <tr key={student.id}>
-                                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {student.name}
-                                        </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-center">
-                                            {student.uploaded ? (
-                                                <FaCheckCircle className="text-green-500 inline w-5 h-5" title="Uploaded" />
-                                            ) : (
-                                                <FaTimesCircle className="text-red-500 inline w-5 h-5" title="Not Uploaded" />
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
+                            {students.length === 0 ? (
+                                <tr>
+                                    <td colSpan="2" className="px-3 py-4 text-center text-sm text-gray-500">
+                                        No students found for this class.
+                                    </td>
+                                </tr>
+                            ) : (
+                                students.map((student) => (
+                                    <tr key={student.id}>
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {student.name}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-center">
+                                            {student.uploaded ? (
+                                                <FaCheckCircle className="text-green-500 inline w-5 h-5" title="Uploaded" />
+                                            ) : (
+                                                <FaTimesCircle className="text-red-500 inline w-5 h-5" title="Not Uploaded" />
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -549,12 +549,10 @@ const ClassViewAssessment = () => {
   };
     
   const openStatusModal = (title) => {
-    // 1. Filter students based on the class standard and division
-    // In a real application, replace this line with an API call:
-    // axios.post(`${API_BASE_URL}api/student`, { standard: classStandard, division: classDivision }, { headers: { auth: AUTH_HEADER } })
-    const students = getStudentListForClass(classStandard, classDivision);
-    
-    // 2. Set the data for the modal
+    // 1. Filter students based on the class standard and division
+    const students = getStudentListForClass(classStandard, classDivision);
+    
+    // 2. Set the data for the modal
     setStudentList(students);
     setModalTitle(title);
     setShowModal(true);
@@ -576,68 +574,73 @@ const ClassViewAssessment = () => {
     const currentValue = stateData[field];
     const displayValue = (currentValue === 'N/A' || currentValue === 'Select') ? '' : currentValue;
 
+    // --- Determine rendering element ---
+    let inputElement;
+
+    if (isTextarea) {
+        // Textarea element
+        inputElement = (
+            <textarea
+                className="border border-gray-400 rounded-md p-2 w-full h-32 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                value={displayValue}
+                onChange={(e) => stateHandler(field, e.target.value)}
+                placeholder={placeholder}
+            />
+        );
+    } else if (isSelect) {
+        // Select element (Now removed for topic/activity, but kept for subject covered)
+        inputElement = (
+            <div className="relative">
+                <select
+                    className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none bg-white pr-8"
+                    value={displayValue}
+                    onChange={(e) => stateHandler(field, e.target.value)}
+                >
+                    <option value="">Select</option>
+                    {options.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+        );
+    } else if (type === "date") {
+        // Date input element
+        inputElement = (
+            <div className="relative">
+                <input
+                    type="date"
+                    className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none pr-10"
+                    value={displayValue}
+                    onChange={(e) => stateHandler(field, e.target.value)}
+                />
+                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
+            </div>
+        );
+    } else {
+        // Default text input element
+        inputElement = (
+            <input
+                type={type}
+                className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder={placeholder}
+                value={displayValue}
+                onChange={(e) => stateHandler(field, e.target.value)}
+            />
+        );
+    }
+
     return (
       <div className="flex flex-col">
         <label className="text-gray-700 mb-1">{label}:</label>
-        {isTextarea ? (
-          <div className="relative">
-            <textarea
-              className="border border-gray-400 rounded-md p-2 w-full h-32 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              value={displayValue}
-              onChange={(e) => stateHandler(field, e.target.value)}
-              placeholder={placeholder}
-            />
-            {field === "homeworkDescription" && ( // Upload button inside the box
-              <button 
-                onClick={(e) => { e.preventDefault(); openStatusModal("Homework"); }}
-                className="absolute bottom-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-md text-xs flex items-center gap-1 hover:bg-blue-700 transition"
-              >
-                <FaUpload className="w-3 h-3" /> Upload
-              </button>
-            )}
-          </div>
-        ) : isSelect ? (
-          <div className="relative">
-            <select
-              className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none bg-white pr-8"
-              value={displayValue}
-              onChange={(e) => stateHandler(field, e.target.value)}
-            >
-              <option value="">Select</option>
-              {options.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
-          </div>
-        ) : type === "date" ? (
-          <div className="relative">
-            <input
-              type="date"
-              className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none pr-10"
-              value={displayValue}
-              onChange={(e) => stateHandler(field, e.target.value)}
-            />
-            <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
-          </div>
-        ) : (
-          <input
-            type={type}
-            className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder={placeholder}
-            value={displayValue}
-            onChange={(e) => stateHandler(field, e.target.value)}
-          />
-        )}
+        {inputElement}
       </div>
     );
   };
-
-  const mockSubjectOptions = ["Mathematics", "Science", "History", "English"]; 
-  const mockTopicOptions = ["Algebra", "Physics", "World War II", "Grammar"]; 
-  const mockActivityOptions = ["Quiz", "Group Project", "Presentation", "Discussion"];
+    
+  // --- Removed Mock Options ---
 
   return (
     <MainLayout>
@@ -645,10 +648,9 @@ const ClassViewAssessment = () => {
         show={showModal} 
         onClose={() => setShowModal(false)} 
         title={modalTitle} 
-        students={studentList} // Using the filtered list
+        students={studentList}
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        {/* Increased width to max-w-5xl */}
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-w-5xl mx-auto border-2 border-gray-300"> 
           
           {/* CLASSWORK SECTION */}
@@ -690,15 +692,17 @@ const ClassViewAssessment = () => {
             </div>
           </div>
 
-          {/* Subject Covered & Topics/Chapters Covered */}
+          {/* Subject Covered & Topics/Chapters Covered (Topics changed to input) */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
             <FieldRenderer 
               label="Subject Covered" field="subjectCovered" 
-              isSelect={true} options={mockSubjectOptions}
+              isSelect={true} options={["Mathematics", "Science", "History", "English"]} // Kept options locally
             />
+            {/* TOPICS/CHAPTERS COVERED - CHANGED TO TEXT INPUT */}
             <FieldRenderer 
               label="Topics/Chapters Covered" field="topicCovered" 
-              isSelect={true} options={mockTopicOptions}
+              type="text" // Changed from isSelect={true}
+              placeholder="Enter topics/chapters"
             />
           </div>
 
@@ -710,24 +714,19 @@ const ClassViewAssessment = () => {
             />
           </div>
 
-          {/* Class Activity with Upload Button (Triggers Modal) */}
+          {/* Class Activity with Upload Button (Activity changed to input) */}
           <div className="flex flex-col w-full mb-10">
             <label className="text-gray-700 mb-1">Class Activity:</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <select
-                  className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none bg-white pr-8"
-                  value={classworkData.classActivity}
-                  onChange={(e) => handleClassworkChange("classActivity", e.target.value)}
-                >
-                  <option value="">Select</option>
-                  {mockActivityOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
+                {/* CLASS ACTIVITY - CHANGED TO TEXT INPUT */}
+                <input
+                    type="text"
+                    className="border border-gray-400 rounded-md p-2 w-full h-10 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Enter activity description"
+                    value={classworkData.classActivity}
+                    onChange={(e) => handleClassworkChange("classActivity", e.target.value)}
+                />
               </div>
               <button 
                 onClick={(e) => { e.preventDefault(); openStatusModal("Class Activity"); }}
@@ -750,12 +749,22 @@ const ClassViewAssessment = () => {
           </div>
 
           {/* Homework Description (Full Width) */}
-          <div className="flex flex-col w-full mb-8">
+          <div className="flex flex-col w-full mb-2"> {/* mb-2 for spacing below textarea */}
             <FieldRenderer 
               label="Homework Description" field="homeworkDescription" 
               placeholder="" isTextarea={true} isHomework={true}
             />
           </div>
+
+            {/* HOMEWORK UPLOAD BUTTON - MOVED OUTSIDE */}
+            <div className="flex justify-end w-full mb-8">
+                <button 
+                    onClick={(e) => { e.preventDefault(); openStatusModal("Homework"); }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-1 hover:bg-blue-700 transition"
+                >
+                    <FaUpload className="w-4 h-4" /> Upload
+                </button>
+            </div>
           
           {/* Submission Deadline */}
           <div className="flex flex-col w-full mb-10">
