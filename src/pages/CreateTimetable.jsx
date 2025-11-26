@@ -608,16 +608,16 @@ const CreateTimetable = () => {
   const [selectedEntry, setSelectedEntry] = useState(null);
 
   const standards = [
-    "Grade 1",
-    "Grade 2",
-    "Grade 3",
-    "Grade 4",
-    "Grade 5",
-    "Grade 6",
-    "Grade 7",
-    "Grade 8",
-    "Grade 9",
-    "Grade 10",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
   ];
 
   const examTypes = ["mid-term", "finals", "unit test", "quarterly"];
@@ -626,7 +626,7 @@ const CreateTimetable = () => {
 
 
   const subjectsByGrade = {
-    "Grade 1": [
+    "1": [
       "English",
       "Mathematics",
       "Science",
@@ -634,16 +634,7 @@ const CreateTimetable = () => {
       "Art",
       "Physical Education",
     ],
-    "Grade 2": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Art",
-      "Physical Education",
-      "Computer Basics",
-    ],
-    "Grade 3": [
+    "2": [
       "English",
       "Mathematics",
       "Science",
@@ -652,7 +643,16 @@ const CreateTimetable = () => {
       "Physical Education",
       "Computer Basics",
     ],
-    "Grade 4": [
+    "3": [
+      "English",
+      "Mathematics",
+      "Science",
+      "Social Studies",
+      "Art",
+      "Physical Education",
+      "Computer Basics",
+    ],
+    "4": [
       "English",
       "Mathematics",
       "Science",
@@ -662,7 +662,7 @@ const CreateTimetable = () => {
       "Computer Science",
       "Environmental Studies",
     ],
-    "Grade 5": [
+    "5": [
       "English",
       "Mathematics",
       "Science",
@@ -672,7 +672,7 @@ const CreateTimetable = () => {
       "Computer Science",
       "Environmental Studies",
     ],
-    "Grade 6": [
+    "6": [
       "English",
       "Mathematics",
       "Science",
@@ -682,7 +682,7 @@ const CreateTimetable = () => {
       "Physical Education",
       "Art",
     ],
-    "Grade 7": [
+    "7": [
       "English",
       "Mathematics",
       "Science",
@@ -692,7 +692,7 @@ const CreateTimetable = () => {
       "Physical Education",
       "Art",
     ],
-    "Grade 8": [
+    "8": [
       "English",
       "Mathematics",
       "Science",
@@ -702,7 +702,7 @@ const CreateTimetable = () => {
       "Physical Education",
       "Art",
     ],
-    "Grade 9": [
+    "9": [
       "English",
       "Mathematics",
       "Science",
@@ -712,7 +712,7 @@ const CreateTimetable = () => {
       "Physical Education",
       "Economics",
     ],
-    "Grade 10": [
+    "10": [
       "English",
       "Mathematics",
       "Science",
