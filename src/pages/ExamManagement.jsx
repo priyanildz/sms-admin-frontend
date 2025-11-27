@@ -503,6 +503,8 @@
 
 // export default ExamManagement;
 
+
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate } from "react-router-dom";
@@ -553,7 +555,7 @@ const ExamManagement = () => {
   const formatDayOnly = (isoDate) => {
     if (!isoDate) return "";
     const date = new Date(isoDate);
-    const dayOptions = { weekday: 'short' };
+    const dayOptions = { weekday: 'long' };
     return date.toLocaleDateString('en-US', dayOptions);
   };
 

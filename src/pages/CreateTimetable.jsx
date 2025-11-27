@@ -583,6 +583,7 @@
 
 // export default CreateTimetable;
 
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate } from "react-router-dom";
@@ -606,6 +607,13 @@ const CreateTimetable = () => {
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  // NEW STATE: To hold fetched subjects
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+
+  // NEW STATE: For drag and drop functionality
+  const [draggedSubject, setDraggedSubject] = useState(null);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+
 
   const standards = [
     "1",
@@ -625,121 +633,65 @@ const CreateTimetable = () => {
   const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
 
 
-  const subjectsByGrade = {
-    "1": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Art",
-      "Physical Education",
-    ],
-    "2": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Art",
-      "Physical Education",
-      "Computer Basics",
-    ],
-    "3": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Art",
-      "Physical Education",
-      "Computer Basics",
-    ],
-    "4": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Art",
-      "Physical Education",
-      "Computer Science",
-      "Environmental Studies",
-    ],
-    "5": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Art",
-      "Physical Education",
-      "Computer Science",
-      "Environmental Studies",
-    ],
-    "6": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Hindi",
-      "Computer Science",
-      "Physical Education",
-      "Art",
-    ],
-    "7": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Hindi",
-      "Computer Science",
-      "Physical Education",
-      "Art",
-    ],
-    "8": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Hindi",
-      "Computer Science",
-      "Physical Education",
-      "Art",
-    ],
-    "9": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Hindi",
-      "Computer Science",
-      "Physical Education",
-      "Economics",
-    ],
-    "10": [
-      "English",
-      "Mathematics",
-      "Science",
-      "Social Studies",
-      "Hindi",
-      "Computer Science",
-      "Physical Education",
-      "Economics",
-      "Business Studies",
-    ],
-  };
-
+  // MODIFIED: Function to get subjects from state
   const getAvailableSubjects = () => {
-    return subjectsByGrade[formData.standard] || [];
+    return availableSubjects;
   };
 
+  // NEW HOOK: Fetch subjects when standard changes
   useEffect(() => {
-    if (formData.standard) {
+    const fetchSubjects = async () => {
+      const std = formData.standard;
       setFormData((prev) => ({ ...prev, subjects: [] }));
-      setErrors((prev) => ({ ...prev, subjects: "" }));
-    }
+      setAvailableSubjects([]);
+      setErrors((prev) => ({ ...prev, subjects: "", fetchSubjects: "" }));
+
+      if (!std) return;
+
+      try {
+        // Fetch subjects from the API endpoint
+        const response = await axios.get(
+          `${API_BASE_URL}api/subjects/${std}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              auth: AUTH_HEADER,
+            },
+          }
+        );
+
+        // Assuming the response structure is { subjects: [{ subjectname: [string, string, ...], standard: "X" }] }
+        const subjectList = response.data.subjects[0]?.subjectname || [];
+        setAvailableSubjects(subjectList);
+        
+        if (subjectList.length === 0) {
+          setErrors((prev) => ({ ...prev, fetchSubjects: `No subjects defined for Standard ${std}.` }));
+        } else {
+          setErrors((prev) => ({ ...prev, fetchSubjects: "" }));
+        }
+
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+        setErrors((prev) => ({
+          ...prev,
+          fetchSubjects: "Failed to load subjects. Check server logs.",
+        }));
+      }
+    };
+
+    fetchSubjects();
   }, [formData.standard]);
 
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
+  
+  // NEW UTILITY: Format date to get short day name
+  const formatDay = (dateString) => {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
 
   const generateTimetablePreview = () => {
     if (!formData.startdate || !formData.subjects.length) {
@@ -747,16 +699,21 @@ const CreateTimetable = () => {
     }
 
     const timetable = [];
-    let currentDate = new Date(formData.startdate);
+    // IMPORTANT: Ensure the date string is interpreted as UTC to avoid timezone issues when setting date in local context
+    let currentDate = new Date(formData.startdate + 'T00:00:00'); 
     const gapDays = parseInt(formData.examgap.split(" ")[0]) || 0;
 
     formData.subjects.forEach((subject) => {
+      const dateString = currentDate.toISOString().split("T")[0];
       timetable.push({
-        date: currentDate.toISOString().split("T")[0],
+        date: dateString,
+        day: formatDay(dateString), // NEW: Add day of the week
         subject,
         starttime: formData.starttime,
         endtime: formData.endtime,
       });
+      
+      // Advance date by 1 day + gapDays
       currentDate.setDate(currentDate.getDate() + 1 + gapDays);
     });
 
@@ -835,6 +792,61 @@ const CreateTimetable = () => {
       ...validationErrors,
     }));
   };
+  
+  // NEW FUNCTION: Handle Select All checkbox
+  const handleSelectAll = (isChecked) => {
+    let updatedSubjects = [];
+    if (isChecked) {
+      // If checked, include all available subjects
+      updatedSubjects = getAvailableSubjects();
+    } else {
+      // If unchecked, set subjects list to empty
+      updatedSubjects = [];
+    }
+    
+    setFormData({ ...formData, subjects: updatedSubjects });
+    
+    // Re-validate to check if subjects list is now empty or full
+    const validationErrors = validateDatesAndTimes(
+      formData.startdate,
+      formData.starttime,
+      formData.endtime,
+      updatedSubjects
+    );
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      ...validationErrors,
+    }));
+  };
+
+  // NEW FUNCTIONS for Drag and Drop Reordering
+  const handleDragStart = (e, index) => {
+    setDraggedSubject(formData.subjects[index]);
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); 
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const newSubjects = [...formData.subjects];
+    // Remove the dragged item
+    const [removed] = newSubjects.splice(draggedIndex, 1);
+    // Insert it into the target position
+    newSubjects.splice(targetIndex, 0, removed);
+
+    setFormData((prev) => ({ ...prev, subjects: newSubjects }));
+    setDraggedIndex(null); // Reset drag state
+  };
+  // END Drag and Drop Functions
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -876,6 +888,8 @@ const CreateTimetable = () => {
       );
       if (response.status === 200) {
         console.log("added etimetable successfully");
+        // Clear existing submit errors on success
+        setErrors((prev) => ({ ...prev, submit: "" }));
         setTimeout(() => {
           navigate("/exams");
         }, 3000);
@@ -925,7 +939,7 @@ const CreateTimetable = () => {
           Create Timetable
         </h3>
         {errors.submit && (
-          <p className="text-red-500 text-sm mb-4 text-center">{errors.submit}</p>
+          <p className="text-red-500 text-sm mb-4 text-center">**{errors.submit}**</p>
         )}
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -941,7 +955,7 @@ const CreateTimetable = () => {
                 <option value="">Select</option>
                 {standards.map((std, i) => (
                   <option key={i} value={std}>
-                    {std}
+                    {std} 
                   </option>
                 ))}
               </select>
@@ -1041,13 +1055,33 @@ const CreateTimetable = () => {
                 ))}
               </select>
             </div>
-          </div>
+            </div>
 
           {formData.standard && (
             <div className="mt-6">
               <label className="block text-sm font-medium mb-3">
-                Select Subjects for {formData.standard}
+                Select Subjects for Standard {formData.standard}
               </label>
+              {/* Display Fetch Error/Message */}
+              {errors.fetchSubjects && (
+                <p className="text-red-500 text-sm mb-2">{errors.fetchSubjects}</p>
+              )}
+              {getAvailableSubjects().length > 0 ? (
+                <>
+                {/* NEW CHANGE: Select All Checkbox */}
+                <div className="mb-4">
+                  <input
+                    type="checkbox"
+                    id="selectAllSubjects"
+                    checked={formData.subjects.length === getAvailableSubjects().length && getAvailableSubjects().length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <label htmlFor="selectAllSubjects" className="font-bold text-sm text-blue-600">
+                    Select All
+                  </label>
+                </div>
+                
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {getAvailableSubjects().map((subject, index) => (
                   <div key={index} className="flex items-center">
@@ -1066,6 +1100,11 @@ const CreateTimetable = () => {
                   </div>
                 ))}
               </div>
+              </>
+              ) : (
+                // Only show this message if fetching was successful but the list is empty
+                !errors.fetchSubjects && <p className="text-gray-500 text-sm">No subjects available for this standard.</p>
+              )}
               {errors.subjects && (
                 <p className="text-red-500 text-sm mt-2">{errors.subjects}</p>
               )}
@@ -1080,22 +1119,35 @@ const CreateTimetable = () => {
           <div className="mt-8">
             <h4 className="text-lg font-semibold text-gray-700 mb-4">
               Timetable Preview
+{/*               {formData.subjects.length > 0 && <span className="text-xs text-gray-500 ml-2">(Drag rows to reorder)</span>} */}
             </h4>
             {generateTimetablePreview().length > 0 ? (
-              <div className="border rounded-lg p-4">
-                <table className="w-full text-left">
+              <div className="border rounded-lg p-4 overflow-x-auto">
+                <table className="min-w-full text-left">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="p-2">Date</th>
-                      <th className="p-2">Subject</th>
-                      <th className="p-2">Time</th>
+                      {/* NEW CHANGE: Added Day column */}
+                      <th className="p-2 w-[10%]">Day</th>
+                      <th className="p-2 w-[20%]">Date</th>
+                      <th className="p-2 w-1/2">Subject</th>
+                      <th className="p-2 w-1/4">Time</th>
                     </tr>
                   </thead>
                   <tbody>
                     {generateTimetablePreview().map((entry, index) => (
-                      <tr key={index} className="border-t">
+                      <tr 
+                        key={entry.subject} 
+                        className={`border-t cursor-move ${draggedIndex === index ? 'opacity-50 bg-yellow-100' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onDragEnd={() => setDraggedIndex(null)}
+                      >
+                        {/* NEW CHANGE: Display Day */}
+                        <td className="p-2 font-medium">{entry.day}</td>
                         <td className="p-2">{entry.date}</td>
-                        <td className="p-2">{entry.subject}</td>
+                        <td className="p-2 font-medium">{entry.subject}</td>
                         <td className="p-2">
                           {entry.starttime} - {entry.endtime}
                         </td>                        
@@ -1168,7 +1220,7 @@ const CreateTimetable = () => {
             </button>
           </div>
         </form>
-      </div>
+        </div>
     </MainLayout>
   );
 };
