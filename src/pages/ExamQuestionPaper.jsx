@@ -1531,10 +1531,6 @@
 
 
 
-
-
-
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import axios from "axios";
@@ -1556,6 +1552,9 @@ const ExamQuestionPaper = () => {
 
   const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
 
+  // ✅ FIX: Use the exact field name 'pdfPath' (Capital P) from MongoDB for the key.
+  const getSetKey = (set, idx) => set.pdfPath || `idx-${idx}`;
+  
   // Function to fetch schedules (can be called by useEffect or after creation/deletion)
   const fetchSets = async (std, subject) => {
     if (!std || !subject) return;
@@ -1608,28 +1607,35 @@ const ExamQuestionPaper = () => {
   };
 
   // Function to handle approval/rejection selection
-  const handleSelectChange = (setUrl, status) => {
-    // The key is the unique URL/ID for the set, ensuring separate status for each set
+  // 🐛 FIX: Take set and index, use getSetKey for state management
+  const handleSelectChange = (set, idx, status) => {
+    const key = getSetKey(set, idx); // Use the consistent unique key (pdfPath)
     setSetApprovalStatus(prevStatus => ({
       ...prevStatus,
-      [setUrl]: status
+      [key]: status
     }));
   };
   
+  // setUrl is actually the pdfPath/unique key of the set passed from the JSX
   const handleSchedule = async (setUrl) => {
     if (!schedule) {
       alert("Please select date & time before scheduling");
       return;
     }
+    
+    // *** FIX 1 (Date Formatting): Convert the local datetime string to ISO 8601 format for the backend ***
+    const scheduledTime = new Date(schedule).toISOString();
+
     try {
       // FIX 3: Using imported API_BASE_URL
       await axios.post(
         `${API_BASE_URL}api/schedule`,
         {
-          standard: selectedStd,
-          subject: selectedSubject,
-          set: setUrl,
-          schedule,
+          // *** FIX 2 (Data Type Safety): Ensure fields are explicitly strings, matching Postman data ***
+          standard: String(selectedStd),
+          subject: String(selectedSubject),
+          set: String(setUrl), // This is the fixed value (pdfPath)
+          schedule: scheduledTime,
         },
         {
           headers: {
@@ -1641,13 +1647,11 @@ const ExamQuestionPaper = () => {
       alert("Scheduled successfully!");
       setShowModal(false);
       setSchedule("");
-      // Clear the approval status for the scheduled set
-      setSetApprovalStatus(prevStatus => {
-        const newStatus = { ...prevStatus };
-        delete newStatus[setUrl];
-        return newStatus;
-      });
-      // Re-fetch to update isScheduled status
+      
+      // Reset local approval status for ALL sets on successful schedule, 
+      // relying on the backend fetch to set 'isScheduled' correctly.
+      setSetApprovalStatus({}); 
+      // Re-fetch to update isScheduled status (will now lock all other sets via server logic)
       fetchSets(selectedStd, selectedSubject); 
     } catch (err) {
       console.error("Error scheduling:", err);
@@ -1665,6 +1669,9 @@ const ExamQuestionPaper = () => {
     setSelectedSet(null);
     setSchedule("");
   };
+
+  // Check if ANY set in the list is currently scheduled.
+  const isAnySetScheduled = sets.some(set => set.isScheduled);
 
   return (
     <MainLayout>
@@ -1717,7 +1724,7 @@ const ExamQuestionPaper = () => {
                 </button>
               ))}
             </div>
-            <p className="text-sm text-gray-500 mt-4 text-center">Note: Rejection/Approval/Scheduling status applies per set.</p>
+{/*             <p className="text-sm text-gray-500 mt-4 text-center">Note: Rejection/Approval/Scheduling status applies per set.</p> */}
           </div>
         )}
 
@@ -1735,7 +1742,29 @@ const ExamQuestionPaper = () => {
 
             {sets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sets.map((set, idx) => (
+                {sets.map((set, idx) => {
+                  // ✅ FIX: Use the correct key field 'pdfPath'
+                  const setKey = set.pdfPath || `idx-${idx}`; 
+                  const currentStatus = setApprovalStatus[setKey] || ""; 
+                  
+                  // Determine if this set is UNLOCKED (not scheduled AND no other set is scheduled)
+                  const isUnlocked = !set.isScheduled && !isAnySetScheduled;
+                    
+                    // Determine button state and text
+                    let buttonText = "Awaiting Approval";
+                    if (set.isScheduled) {
+                        buttonText = "Already Scheduled";
+                    } else if (isAnySetScheduled) {
+                        // ❌ NEW RULE IMPLEMENTATION: If any set is scheduled, this one must be treated as rejected/locked
+                        buttonText = "Rejected";
+                    } else if (currentStatus === "Reject") {
+                        buttonText = "Rejected";
+                    }
+
+                    // Determine if the schedule button should appear
+                    const showScheduleButton = currentStatus === "Approve" && !set.isScheduled && !isAnySetScheduled;
+
+                  return (
                   <div
                     key={idx}
                     className="bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6"
@@ -1767,7 +1796,8 @@ const ExamQuestionPaper = () => {
                       <div className="space-y-3">
                         {/* View Button */}
                         <button
-                          onClick={() => window.open(`${API_BASE_URL}api/view-pdf/${set.url}`, "_blank")}
+                          // ✅ FIX: Use the correct field name 'pdfPath' for viewing the PDF
+                          onClick={() => window.open(`${API_BASE_URL}api/view-pdf/${set.pdfPath}`, "_blank")}
                           className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                         >
                           <svg
@@ -1795,25 +1825,25 @@ const ExamQuestionPaper = () => {
                         {/* Select Dropdown for Approve/Reject */}
                         <div className="w-full">
                           <select
-                                // Use the unique set URL as the key for its status
-                            value={setApprovalStatus[set.url] || ""}
-                            onChange={(e) => handleSelectChange(set.url, e.target.value)}
-                            disabled={set.isScheduled}
+                            value={currentStatus}
+                            onChange={(e) => handleSelectChange(set, idx, e.target.value)}
+                            // Disable if already scheduled OR if any other set is scheduled
+                            disabled={set.isScheduled || isAnySetScheduled}
                             className={`w-full border rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 ${
-                              set.isScheduled 
+                              set.isScheduled || isAnySetScheduled 
                                 ? 'bg-gray-400 text-gray-200 cursor-not-allowed border-gray-400'
                                 : 'bg-white border-gray-300 focus:ring-blue-400'
                             }`}
                           >
                             <option value="">Select Action</option>
-                            <option value="Approve">Approve</option>
-                            <option value="Reject">Reject</option>
+                            <option value="Approve" disabled={isAnySetScheduled}>Approve</option>
+                            <option value="Reject" disabled={isAnySetScheduled}>Reject</option>
                           </select>
                         </div>
 
 
                         {/* Schedule Button (Only visible if Approved and not Scheduled) */}
-                        {setApprovalStatus[set.url] === "Approve" && !set.isScheduled ? (
+                        {showScheduleButton ? ( 
                           <button
                             onClick={() => openScheduleModal(set)}
                             className={`w-full py-2 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white`}
@@ -1834,26 +1864,20 @@ const ExamQuestionPaper = () => {
                             Schedule
                           </button>
                         ) : (
-                            // Disabled button for Rejected or Awaiting Approval
+                            // Disabled button for Rejected or Awaiting Approval/Conflict
                           <button
                             disabled
                             className={`w-full py-2 px-4 rounded-lg font-medium cursor-not-allowed ${
-                                set.isScheduled ? "bg-gray-500 text-white" : "bg-gray-200 text-gray-500"
-                            }`}
+                                set.isScheduled ? "bg-gray-500 text-white" : "bg-gray-200 text-gray-500"
+                            }`}
                           >
-                                {/* Logic to determine text based on setApprovalStatus for that specific set */}
-                            {set.isScheduled 
-                                ? "Already Scheduled" 
-                                : (setApprovalStatus[set.url] === "Reject" 
-                                    ? "Rejected" 
-                                    : "Awaiting Approval"
-                                )}
+                                {buttonText}
                           </button>
                         )}
                       </div>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -1882,7 +1906,12 @@ const ExamQuestionPaper = () => {
 
         {/* Schedule Modal (Remains the same) */}
         {showModal && selectedSet && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 flex items-center justify-center z-50"
+style={{ 
+                // Using RGBA to create the dimming effect without blurring the backdrop
+                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
+            }}
+>
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
               {/* Modal Header */}
               <div className="flex justify-between items-center mb-6">
@@ -1943,7 +1972,7 @@ const ExamQuestionPaper = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleSchedule(selectedSet.url)}
+                  onClick={() => handleSchedule(selectedSet.pdfPath)}
                   disabled={selectedSet.isScheduled}
                   className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
                     selectedSet.isScheduled
