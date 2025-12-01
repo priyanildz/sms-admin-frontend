@@ -173,8 +173,8 @@ const ReportCard = () => {
   const [selectedDiv, setSelectedDiv] = useState("");
   const [students, setStudents] = useState([]);
 
-  const stdOptions = ["1", "2", "3", "4", "5"];
-  const divOptions = ["A", "B", "C"];
+  const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+  const divOptions = ["A", "B", "C", "D", "E"];
 
   const subjects = ["English", "Maths", "Science", "History", "Computer"];
 
