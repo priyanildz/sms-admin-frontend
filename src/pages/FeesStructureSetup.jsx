@@ -1837,7 +1837,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import axios from "axios";
@@ -1857,8 +1856,8 @@ const FeesStructureSetup = () => {
   const [selectedStd, setSelectedStd] = useState("");
   const [assignFees, setAssignFees] = useState([{ category: "", amount: "" }]);
 
-  // NEW STATE: To hold all saved fee structures (for display)
-  const [savedFeeStructures, setSavedFeeStructures] = useState([]);
+  // NEW STATE: To hold all saved fee structures (for display)
+  const [savedFeeStructures, setSavedFeeStructures] = useState([]);
 
   // API configuration
   // CRITICAL FIX: Removed local definition and using imported API_BASE_URL
@@ -1867,7 +1866,7 @@ const FeesStructureSetup = () => {
   // Fetch existing categories on component mount
   useEffect(() => {
     fetchCategories();
-    fetchSavedFeeStructures(); // FETCH SAVED STRUCTURES ON MOUNT
+    fetchSavedFeeStructures(); // FETCH SAVED STRUCTURES ON MOUNT
   }, []);
 
   const fetchCategories = async () => {
@@ -1900,21 +1899,21 @@ const FeesStructureSetup = () => {
       setLoading(false);
     }
   };
-  
-  // NEW FUNCTION: Fetch all existing fee structures
-  const fetchSavedFeeStructures = async () => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}api/fees`, {
-            headers: { auth: AUTH_HEADER },
-        });
-        if (response.status === 200) {
-            setSavedFeeStructures(response.data);
-        }
-    } catch (error) {
-        console.error("Error fetching fee structures:", error);
-        showMessage("error", "Failed to load saved fee structures");
-    }
-  };
+  
+  // NEW FUNCTION: Fetch all existing fee structures
+  const fetchSavedFeeStructures = async () => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}api/fees`, {
+            headers: { auth: AUTH_HEADER },
+        });
+        if (response.status === 200) {
+            setSavedFeeStructures(response.data);
+        }
+    } catch (error) {
+        console.error("Error fetching fee structures:", error);
+        showMessage("error", "Failed to load saved fee structures");
+    }
+  };
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
@@ -2001,7 +2000,7 @@ const FeesStructureSetup = () => {
       
       if (response.status === 200 || response.status === 201) {
         showMessage("success", "Fee categories saved successfully");
-        fetchCategories(); // Re-fetch to ensure the state is updated from DB if structure changes
+        fetchCategories(); // Re-fetch to ensure the state is updated from DB if structure changes
       }
     } catch (error) {
       console.error("Error saving categories:", error);
@@ -2021,7 +2020,7 @@ const FeesStructureSetup = () => {
       // Format data according to your MongoDB schema
       const payload = {
         standard: selectedStd,
-        title: `Annual Fee Structure for ${selectedStd}`,
+        title: `Annual Fee Structure for ${selectedStd}`,
         categories: assignFees
           .filter(fee => fee.category && fee.amount)
           .map(fee => ({
@@ -2048,7 +2047,7 @@ const FeesStructureSetup = () => {
       if (response.status === 200 || response.status === 201) {
         showMessage("success", "Fee assignment saved successfully");
         console.log("Saved fee structure:", payload);
-        fetchSavedFeeStructures(); // RE-FETCH TO DISPLAY THE NEWLY SAVED STRUCTURE
+        fetchSavedFeeStructures(); // RE-FETCH TO DISPLAY THE NEWLY SAVED STRUCTURE
         
         // Reset form
         setSelectedStd("");
@@ -2133,30 +2132,30 @@ const FeesStructureSetup = () => {
                   </button>
                 </div>
 
-                {/* List of Defined Categories */}
-                {feeCategories.length > 0 ? (
-                    <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
-                        {feeCategories.map((category, index) => (
-                            <div 
-                                key={index} 
-                                className="flex justify-between items-center py-2 px-3 border-b last:border-b-0"
-                            >
-                                <span className="text-gray-700">{category}</span>
-                                <button
-                                    onClick={() => removeFeeCategory(index)}
-                                    className="text-red-500 hover:text-red-700 font-bold"
-                                    title="Remove Category"
-                                >
-                                    &times;
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-gray-500 text-center py-4">
-                        No fee categories defined. Add a category to get started.
-                    </p>
-                )}
+                {/* List of Defined Categories */}
+                {feeCategories.length > 0 ? (
+                    <div className="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
+                        {feeCategories.map((category, index) => (
+                            <div 
+                                key={index} 
+                                className="flex justify-between items-center py-2 px-3 border-b last:border-b-0"
+                            >
+                                <span className="text-gray-700">{category}</span>
+                                <button
+                                    onClick={() => removeFeeCategory(index)}
+                                    className="text-red-500 hover:text-red-700 font-bold"
+                                    title="Remove Category"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-gray-500 text-center py-4">
+                        No fee categories defined. Add a category to get started.
+                    </p>
+                )}
                 
                 {/* Fee Structure Summary */}
                 {calculateTotal() > 0 && (
@@ -2216,7 +2215,11 @@ const FeesStructureSetup = () => {
                     className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
                   >
                     <option value="">Select Standard</option>
-//                     <option value="1">1</option>
+
+                    <option value="Nursery">Nursery</option>
+                        <option value="Junior">Junior KG</option>
+                        <option value="Senior">Senior KG</option>
+                    <option value="1">1</option>
 //                     <option value="2">2</option>
 //                     <option value="3">3</option>
 //                     <option value="4">4</option>
@@ -2327,43 +2330,7 @@ const FeesStructureSetup = () => {
                   </button>
                 </div>
                 
-                {/* NEW BLOCK: Display Saved Fee Structures */}
-                <h3 className="text-xl font-bold text-gray-800 pt-8 border-t mt-8">
-                    Assigned Fee Structures
-                </h3>
-                
-                <div className="overflow-x-auto">
-                    {savedFeeStructures.length > 0 ? (
-                        <table className="w-full border border-gray-300 rounded-lg text-sm">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="border py-2 px-3 text-left">Standard</th>
-                                    <th className="border py-2 px-3 text-left">Annual Fee</th>
-                                    <th className="border py-2 px-3 text-left">Categories</th>
-                                    {/* <th className="border py-2 px-3 text-center">Actions</th> */}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {savedFeeStructures.map((structure) => (
-                                    <tr key={structure._id}>
-                                        <td className="border py-2 px-3 font-semibold">{structure.standard}</td>
-                                        <td className="border py-2 px-3">
-                                            ₹{structure.annualfee ? structure.annualfee.toLocaleString() : structure.total.toLocaleString()}
-                                        </td>
-                                        <td className="border py-2 px-3 text-xs">
-                                            {structure.categories.map(c => `${c.name} (₹${c.amount.toLocaleString()})`).join(', ')}
-                                        </td>
-                                        
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p className="text-gray-500 text-center py-4">
-                            No fee structures have been assigned yet.
-                        </p>
-                    )}
-                </div>
+               
             </div>
             )}
           </div>
