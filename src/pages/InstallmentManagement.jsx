@@ -103,6 +103,10 @@
 // export default InstallmentManagement;
 
 
+
+
+
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MainLayout from "../layout/MainLayout";
@@ -115,13 +119,13 @@ const InstallmentManagement = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // FIX: Using imported API_BASE_URL
         const res = await axios.get(`${API_BASE_URL}api/combined-fees`, {
           headers: {
             "Content-Type": "application/json",
             auth: `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`,
           },
         });
+        // Assuming response.data is { all: N, primary: P, secondary: S, preprimary: PP }
         setFeesData(res.data);
       } catch (err) {
         console.error("Error fetching fees:", err);
@@ -130,6 +134,13 @@ const InstallmentManagement = () => {
 
     fetchData();
   }, []);
+  
+  // Helper function to format currency and handle missing data
+  const formatCurrency = (amount) => {
+      const num = Number(amount);
+      if (isNaN(num) || num === 0) return '₹0';
+      return `₹${Math.round(num).toLocaleString()}`;
+  };
 
   return (
     <MainLayout>
@@ -153,30 +164,44 @@ const InstallmentManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {/* Commented Pre Primary for now */}
-                {/* <tr>
-                  <td className="border py-2">Pre Primary</td>
-                  <td className="border py-2"></td>
-                  <td className="border py-2"></td>
-                  <td className="border py-2"></td>
-                  <td className="border py-2"></td>
-                </tr> */}
-
+                {feesData && (
+                    // FIX: Added Pre Primary row
+                  <tr>
+                    <td className="border py-2">Pre Primary</td>
+                    <td className="border py-2">
+                        {formatCurrency(feesData.preprimary)}
+                    </td>
+                    <td className="border py-2">
+                      {formatCurrency(feesData.preprimary / 2)}
+                    </td>
+                    <td className="border py-2">
+                      {formatCurrency(feesData.preprimary / 4)}
+                    </td>
+                    <td className="border py-2">
+                      {formatCurrency(feesData.preprimary / 12)}
+                    </td>
+                  </tr>
+                )}
+                
                 {/* Primary */}
                 {feesData && (
                   <tr>
                     <td className="border py-2">Primary (1-7)</td>
                     <td className="border py-2">
-                      {feesData.primary.totalAmount}
+                        {/* FIX: Access feesData.primary directly */}
+                      {formatCurrency(feesData.primary)}
                     </td>
                     <td className="border py-2">
-                      {feesData.primary.totalAmount / 2}
+                        {/* FIX: Access feesData.primary directly */}
+                      {formatCurrency(feesData.primary / 2)}
                     </td>
                     <td className="border py-2">
-                      {feesData.primary.totalAmount / 4}
+                        {/* FIX: Access feesData.primary directly */}
+                      {formatCurrency(feesData.primary / 4)}
                     </td>
                     <td className="border py-2">
-                      {feesData.primary.totalAmount / 12}
+                        {/* FIX: Access feesData.primary directly */}
+                      {formatCurrency(feesData.primary / 12)}
                     </td>
                   </tr>
                 )}
@@ -186,16 +211,20 @@ const InstallmentManagement = () => {
                   <tr>
                     <td className="border py-2">Secondary (8-10)</td>
                     <td className="border py-2">
-                      {feesData.secondary.totalAmount}
+                        {/* FIX: Access feesData.secondary directly */}
+                      {formatCurrency(feesData.secondary)}
                     </td>
                     <td className="border py-2">
-                      {feesData.secondary.totalAmount / 2}
+                        {/* FIX: Access feesData.secondary directly */}
+                      {formatCurrency(feesData.secondary / 2)}
                     </td>
                     <td className="border py-2">
-                      {feesData.secondary.totalAmount / 4}
+                        {/* FIX: Access feesData.secondary directly */}
+                      {formatCurrency(feesData.secondary / 4)}
                     </td>
                     <td className="border py-2">
-                      {feesData.secondary.totalAmount / 12}
+                        {/* FIX: Access feesData.secondary directly */}
+                      {formatCurrency(feesData.secondary / 12)}
                     </td>
                   </tr>
                 )}
