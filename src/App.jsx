@@ -262,6 +262,10 @@ function App() {
         <Route path="/fees" element={<FeesDashboard />} />
         <Route path="/fees-installments" element={<InstallmentManagement />} />
         <Route path="/fees-collection" element={<FeesCollection />} />
+
+        {/* FIX: Correcting the route path to match the Dashboard's search navigation */}
+        <Route path="/payment-entry" element={<PaymentEntry />} />
+
         <Route path="/fees-payment-entry" element={<PaymentEntry />} />
         <Route path="/fees-structure" element={<FeesStructureSetup />} />
         <Route path="/notifications" element={<NotificationScreen />} />
