@@ -139,9 +139,6 @@ const ViewEvent = () => {
             <h2 className="text-3xl font-extrabold text-blue-700 mb-2">
               Event Details
             </h2>
-            <p className="text-lg text-gray-500">
-              View the full event summary below
-            </p>
           </div>
 
           {/* --- Event Name and Date Panel --- */}
@@ -208,7 +205,7 @@ const ViewEvent = () => {
           <div className="p-4 pt-0">
             <h3 className="flex items-center text-2xl font-semibold text-gray-700 mb-4">
               <UsersIcon className="w-6 h-6 mr-3 text-blue-600" />
-              Participants ({event.participantNames.length})
+              Participants 
             </h3>
 
             <div className="space-y-3">
