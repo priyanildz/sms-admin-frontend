@@ -198,6 +198,7 @@ import StudentAdmission from "./pages/StudentAdmission";
 import EventManagement from "./pages/EventManagement";
 import AddEvents from "./pages/AddEvents";
 import ViewEvent from "./pages/ViewEvent";
+import EditEvents from "./pages/EditEvents";
 import ExamManagement from "./pages/ExamManagement";
 import CreateTimetable from "./pages/CreateTimetable";
 import ExamQuestionPaper from "./pages/ExamQuestionPaper";
@@ -277,6 +278,8 @@ function App() {
         <Route path="/events" element={<EventManagement />} />
         <Route path="/events-add" element={<AddEvents />} />
         <Route path="/events-view" element={<ViewEvent />} />
+        {/* 💡 FIX: ADD THE NEW EDIT ROUTE HERE */}
+    <Route path="/events-edit/:id" element={<EditEvents />} />
         <Route path="/exams" element={<ExamManagement />} />
         <Route path="/exams-create-timetable" element={<CreateTimetable />} />
         <Route path="/exams-question-paper" element={<ExamQuestionPaper />} />
