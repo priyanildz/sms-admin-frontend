@@ -307,7 +307,7 @@ const EditEvents = () => {
             <div className="p-6">
                 <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
                     <h2 className="text-2xl font-bold text-center text-red-600 mb-8">
-                        Edit Event: {originalEvent.eventname}
+                        {originalEvent.eventname}
                     </h2>
 
                     {error && (
