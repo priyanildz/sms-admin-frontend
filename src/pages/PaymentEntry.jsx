@@ -2654,6 +2654,23 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
@@ -2722,6 +2739,35 @@ const paymentModeOptions = [
     { label: "Internet Banking", value: "Internet Banking" },
     { label: "Cheques", value: "Cheques" },
 ];
+
+// FIX: Custom sort order for academic standards
+const ACADEMIC_ORDER = {
+    "NURSERY": 1,
+    "JUNIOR KG": 2, // Assuming Junior KG maps to Junior
+    "SENIOR KG": 3, // Assuming Senior KG maps to Senior
+    "JUNIOR": 2,
+    "SENIOR": 3,
+    "1": 4, "2": 5, "3": 6, "4": 7, "5": 8,
+    "6": 9, "7": 10, "8": 11, "9": 12, "10": 13
+};
+
+const academicSort = (a, b) => {
+    const stdA = (a.std || '').toUpperCase();
+    const stdB = (b.std || '').toUpperCase();
+    
+    // Map to a numeric order. Default to a high number for unknown standards.
+    const orderA = ACADEMIC_ORDER[stdA] || 99;
+    const orderB = ACADEMIC_ORDER[stdB] || 99;
+    
+    if (orderA !== orderB) {
+        return orderA - orderB;
+    }
+    
+    // Secondary sort by division
+    const divA = a.div || '';
+    const divB = b.div || '';
+    return divA.localeCompare(divB);
+};
 
 
 const PaymentEntry = () => {
@@ -2817,22 +2863,22 @@ const PaymentEntry = () => {
 
             let students = studentsResponse.data;
 
-            // --- FIX: Client-Side Search Filtering for Flexible Search ---
-            const lowerSearchTerm = searchTerm.toLowerCase().trim();
-            if (lowerSearchTerm) {
-                students = students.filter(student => {
-                    // Combine first name and last name for full name search
-                    const fullName = `${student.firstname} ${student.lastname}`.toLowerCase();
-                    const firstName = (student.firstname || '').toLowerCase();
-                    const lastName = (student.lastname || '').toLowerCase();
-                    
-                    // Check if search term is in first name, last name, or full name
-                    return fullName.includes(lowerSearchTerm) || 
-                           firstName.includes(lowerSearchTerm) ||
-                           lastName.includes(lowerSearchTerm);
-                });
-            }
-            // --- END FIX ---
+            // --- FIX: Client-Side Search Filtering for Flexible Search ---
+            const lowerSearchTerm = searchTerm.toLowerCase().trim();
+            if (lowerSearchTerm) {
+                students = students.filter(student => {
+                    // Combine first name and last name for full name search
+                    const fullName = `${student.firstname} ${student.lastname}`.toLowerCase();
+                    const firstName = (student.firstname || '').toLowerCase();
+                    const lastName = (student.lastname || '').toLowerCase();
+                    
+                    // Check if search term is in first name, last name, or full name
+                    return fullName.includes(lowerSearchTerm) || 
+                           firstName.includes(lowerSearchTerm) ||
+                           lastName.includes(lowerSearchTerm);
+                });
+            }
+            // --- END FIX ---
 
 
             // --- B. Fetch Payment Entries for the current standard/division context ---
@@ -2859,7 +2905,7 @@ const PaymentEntry = () => {
 
 
             // --- C. Merge Data ---
-            const mergedList = students.map(student => {
+            let mergedList = students.map(student => {
                 const studentName = `${student.firstname} ${student.lastname}`;
                 const studentStdKey = normalizeStd(student.admission.admissionstd);
                 
@@ -2881,6 +2927,9 @@ const PaymentEntry = () => {
                     status: getPaymentStatus({ paidAmount, totalFeesDue: annualFeeDue }),
                 };
             });
+
+            // FIX: Sort the final list by academic standard
+            mergedList.sort(academicSort);
 
             setStudentFeeList(mergedList);
 

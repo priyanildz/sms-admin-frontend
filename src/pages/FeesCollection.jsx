@@ -565,7 +565,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
@@ -598,6 +597,18 @@ const SelectField = ({ label, name, options, value, onChange }) => {
   );
 };
 
+// Helper function to find the latest installment date
+const getLatestDate = (installments) => {
+    if (!installments || installments.length === 0) return 0;
+    
+    // Sort installments by date descending and return the latest date
+    const sortedInstallments = [...installments].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    return new Date(sortedInstallments[0].date).getTime();
+};
+
+
 const FeesCollection = () => {
   const [showTable, setShowTable] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -616,11 +627,11 @@ const FeesCollection = () => {
 
   const fetchTransactions = async () => {
     // --- FIX: Removed confusing client-side Category-to-Standard translation.
-    // The backend logic is already robust enough to handle the 'category' filter 
-    // and the specific 'std' filter simultaneously.
+    // The backend logic is already robust enough to handle the 'category' filter 
+    // and the specific 'std' filter simultaneously.
     let standardFilter = filters.standard; 
-    
-    // No redundant client-side logic here. Just use the selected filters.
+    
+    // No redundant client-side logic here. Just use the selected filters.
     
 
     try {
@@ -644,8 +655,13 @@ const FeesCollection = () => {
         }
       );
 
-      setTransactions(response.data);
-      setShowTable(true);
+    // FIX: Sort transactions by the latest installment date (descending)
+    const sortedTransactions = response.data.sort((a, b) => {
+        return getLatestDate(b.installments) - getLatestDate(a.installments);
+    });
+
+    setTransactions(sortedTransactions);
+    setShowTable(true);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setTransactions([]);
@@ -847,7 +863,7 @@ const FeesCollection = () => {
       );
     })
   ) : (
-    <tr>
+  	<tr>
       <td
         colSpan="8"
         className="px-6 py-4 text-center border text-gray-500"
