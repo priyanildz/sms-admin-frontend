@@ -99,6 +99,7 @@
 
 
 
+// pages/EditEvents.jsx
 
 
 
@@ -107,31 +108,110 @@
 
 
 
-import React from "react";
+
+
+
+
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 // Assuming Heroicons are installed
-import { UsersIcon, CalendarIcon, UserCircleIcon, AcademicCapIcon } from '@heroicons/react/24/outline'; 
+import { CalendarIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+// Removed FaTimes import as it's no longer used
 
-// Helper component to render tags
-const TagRenderer = ({ dataString, colorClass, defaultText = "N/A" }) => {
-    // Split the comma-separated string, trim whitespace, and filter out empty entries
-    const items = dataString?.split(',').map(s => s.trim()).filter(s => s.length > 0) || [];
-    
-    if (items.length === 0 || items[0] === "N/A") {
-        return <p className="text-xl font-semibold text-gray-500 italic">{defaultText}</p>;
-    }
+// Component for a read-only field (mimicking the form's input look)
+const ReadOnlyField = ({ label, value, defaultText = "N/A", isRequired = true }) => (
+    <div className="flex flex-col space-y-1">
+        <label className="text-sm font-medium text-gray-700">
+            {label} {isRequired}
+        </label>
+        <div className="border border-gray-300 rounded-md p-3 bg-gray-50 text-gray-800 text-base font-medium min-h-[44px] flex items-center shadow-inner">
+            <p className="w-full">{value || defaultText}</p>
+        </div>
+    </div>
+);
+
+// Component to mimic the functional multi-select dropdown for Managed By
+const ManagedByDropdownMimic = ({ label, selectedList, isDropdownOpen, setIsDropdownOpen }) => {
+    // Determine the string to display in the main input field
+    const displayString = selectedList.join(', ');
+    const hasSelections = selectedList.length > 0;
 
     return (
-        <div className="flex flex-wrap gap-2">
-            {items.map((item, index) => (
-                <span 
-                    key={index}
-                    className={`px-3 py-1 text-sm font-semibold rounded-full ${colorClass} whitespace-nowrap`}
-                >
-                    {item}
-                </span>
-            ))}
+        <div className="flex flex-col space-y-1 relative">
+            <label className="text-sm font-medium text-gray-700">
+                {label} 
+            </label>
+            {/* Input/Display Box (Shows comma-separated selected names) */}
+            <div
+                className="relative border border-gray-300 rounded-md bg-gray-50 min-h-[44px] shadow-inner flex items-center px-3 py-2 cursor-pointer"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)} // Toggle on click
+            >
+                <div className="flex-1 overflow-hidden whitespace-nowrap">
+                    {hasSelections ? (
+                        <span className="text-gray-800 text-base font-medium">
+                            {displayString}
+                        </span>
+                    ) : (
+                        <span className="text-gray-500">Selected Staff Members</span>
+                    )}
+                </div>
+                {/* Down arrow icon */}
+                <ChevronDownIcon 
+                    className={`h-5 w-5 text-gray-400 transform transition-transform ml-2 flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`} 
+                />
+            </div>
+
+            {/* Dropdown List (Visually rendered when open - ONLY SELECTED STAFF ARE SHOWN) */}
+            {isDropdownOpen && (
+                <div className="absolute z-10 w-full top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <ul className="py-1">
+                        {selectedList.map((name, index) => {
+                            // Apply styling similar to what React-Select uses for selected items
+                            const isHighlighted = index === 0; // Just for visual mimicry
+                            
+                            return (
+                                <li
+                                    key={index}
+                                    className={`px-3 py-2 text-sm text-gray-700 cursor-default ${isHighlighted ? 'bg-blue-100' : 'hover:bg-gray-50'}`}
+                                >
+                                    {name}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+// Component to display the Participant List (Matches form look)
+const ParticipantsListDisplay = ({ participantNames }) => {
+    return (
+        <div className="mt-8">
+            <h4 className="font-semibold text-gray-700 mb-3">Selected Participants List</h4>
+            <div className="space-y-2">
+                {participantNames.length > 0 ? (
+                    participantNames.map((name, index) => (
+                        <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 shadow-sm"
+                        >
+                            <div className="flex items-center">
+                                {/* Blue circle placeholder */}
+                                <div className="w-8 h-8 rounded-full bg-blue-500 mr-3 flex-shrink-0"></div>
+                                <span className="text-base font-medium text-gray-800">{name}</span>
+                            </div>
+                            {/* Arrow placeholder (mimicking action possibility, matching image) */}
+                            <span className="text-blue-500 text-xl font-bold ml-2">›</span>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-gray-500 italic px-3 pt-2">No participants selected.</p>
+                )}
+            </div>
         </div>
     );
 };
@@ -140,135 +220,91 @@ const TagRenderer = ({ dataString, colorClass, defaultText = "N/A" }) => {
 const ViewEvent = () => {
     const { state } = useLocation();
     const navigate = useNavigate();
+    const [isManagedByDropdownOpen, setIsManagedByDropdownOpen] = useState(false); // State to control the visual dropdown list for Managed By
 
-    // Ensure the structure includes the participantNames array (the clean strings)
-    const event = state?.event || {
+    // --- Data Initialization ---
+    const defaultEvent = {
         name: "Unknown Event",
         date: new Date().toISOString(),
-        manager: "N/A",
-        standard: "N/A",
-        division: "N/A",
-        participants: [], 
-        participantNames: [], // This array holds the clean names (strings)
+        manager: "Nidhi Pandey, Aman Khan, Roshani Sharma",
+        participantNames: ["Aman jhsdf", "Nandini Purohit", "Sneha Rajput", "Adhrit Singh", "Seth Morris"],
     };
+    const event = state?.event || defaultEvent;
+    
+    // Process multi-select strings for display
+    const selectedManagers = event.manager.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+    // Format date to match typical input/form display (e.g., DD-MM-YYYY)
+    const formattedDate = new Date(event.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+
 
     return (
         <MainLayout>
-            <div className="p-6">
-                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-5xl mx-auto space-y-8 border border-gray-100">
+            <div className="flex-1 p-6">
+                <div className="bg-white rounded-lg shadow-xl p-8 max-w-4xl mx-auto border border-gray-200">
                     
-                    {/* Header Section: EVENT DETAILS Title */}
-                    <div className="text-center pb-4 border-b border-blue-100">
-                        <h2 className="text-3xl font-extrabold text-blue-700 mb-2">
-                            Event Details
+                    {/* Page Header (Mimicking the Edit/Add page header) */}
+                    <div className="text-center mb-8">
+                        <h2 className="text-xl font-bold text-center text-gray-700">
+                            Event
                         </h2>
                     </div>
 
-                    {/* --- Event Name and Date Panel --- */}
-                    <div className="bg-blue-50 p-6 rounded-xl shadow-inner border-l-4 border-blue-600 grid grid-cols-2 gap-4">
-                        {/* Event Name */}
-                        <div>
-                            <h3 className="text-sm font-medium text-blue-600">Event Name</h3>
-                            <p className="text-2xl font-bold text-blue-900">
-                                {event.name}
-                            </p>
+                    <div className="space-y-6">
+                        {/* 1. Event Name */}
+                        <ReadOnlyField
+                            label="Event Name"
+                            value={event.name}
+                        />
+
+                        {/* 2. Date and Managed By (Grid) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            {/* Date Field Mimic */}
+                            <div className="flex flex-col space-y-1">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Date 
+                                </label>
+                                <div className="border border-gray-300 rounded-md p-3 bg-gray-50 text-gray-800 text-base font-medium min-h-[44px] flex items-center shadow-inner">
+                                    <CalendarIcon className="w-5 h-5 mr-2 text-gray-500 flex-shrink-0" />
+                                    <p className="w-full">{formattedDate}</p>
+                                </div>
+                            </div>
+                            
+                            {/* Managed By Dropdown Mimic */}
+                            <ManagedByDropdownMimic
+                                label="Managed by"
+                                selectedList={selectedManagers}
+                                isDropdownOpen={isManagedByDropdownOpen}
+                                setIsDropdownOpen={setIsManagedByDropdownOpen}
+                            />
                         </div>
                         
-                        {/* Date */}
-                        <div className="text-right">
-                            <h3 className="text-sm font-medium text-blue-600">Date</h3>
-                            <p className="text-2xl font-bold text-blue-900">
-                                {new Date(event.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            </p>
-                        </div>
-                    </div>
-
-                    <hr className="border-gray-200" />
-
-                    {/* --- Secondary Info Grid (Managed By, Std, Div) --- */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-4">
+                        {/* 3. Participants Selection Mimic (Non-editable prompt) - Full Width */}
                         
-                        {/* 1. Managed By (Now rendered as Green Tags) */}
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center text-sm font-medium text-gray-500">
-                                <UserCircleIcon className="w-5 h-5 mr-2 text-green-500" />
-                                Managed By
-                            </div>
-                            <TagRenderer 
-                                dataString={event.manager} 
-                                colorClass="bg-green-100 text-green-800" 
-                            />
-                        </div>
 
-                        {/* 2. Standard (Now rendered as Red Tags) */}
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center text-sm font-medium text-gray-500">
-                                <AcademicCapIcon className="w-5 h-5 mr-2 text-red-500" />
-                                Standard
-                            </div>
-                            <TagRenderer 
-                                dataString={event.standard} 
-                                colorClass="bg-red-100 text-red-800" 
-                                defaultText="All Standards"
-                            />
-                        </div>
+                        {/* 4. Selected Participants List */}
+                        <ParticipantsListDisplay participantNames={event.participantNames} />
 
-                        {/* 3. Division (Now rendered as Yellow/Orange Tags) */}
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center text-sm font-medium text-gray-500">
-                                <UsersIcon className="w-5 h-5 mr-2 text-yellow-600" />
-                                Division
-                            </div>
-                            <TagRenderer 
-                                dataString={event.division} 
-                                colorClass="bg-yellow-100 text-yellow-800" 
-                                defaultText="All Divisions"
-                            />
-                        </div>
                     </div>
 
-                    <hr className="border-gray-200" />
-
-                    {/* --- Participants Section (Matching the desired list look) --- */}
-                    <div className="p-4 pt-0">
-                        <h3 className="flex items-center text-2xl font-semibold text-gray-700 mb-4">
-                            <UsersIcon className="w-6 h-6 mr-3 text-blue-600" />
-                            Participants 
-                        </h3>
-
-                        <div className="space-y-3">
-                            {event.participantNames.length > 0 ? (
-                                event.participantNames.map((name, index) => (
-                                    <li
-                                        key={index}
-                                        className="list-none flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
-                                    >
-                                        <div className="flex items-center">
-                                            {/* Blue circle placeholder */}
-                                            <div className="w-6 h-6 rounded-full bg-blue-500 mr-3 flex-shrink-0"></div>
-                                            <span className="text-base font-medium text-gray-800">{name}</span>
-                                        </div>
-                                        {/* Arrow placeholder (Kept for visual consistency with original) */}
-                                        <span className="text-blue-500 text-xl font-bold ml-2">›</span>
-                                    </li>
-                                ))
-                            ) : (
-                                <p className="text-gray-500 italic">No participants listed for this event.</p>
-                            )}
+                    {/* Action Buttons (Mimicking the screenshot layout) */}
+                    <div className="flex justify-between pt-8 space-x-4 border-t border-gray-100 mt-8">
+                        
+                        {/* Left side (Delete and Back) */}
+                        <div className="flex space-x-4">
+                            
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-all font-medium"
+                            >
+                                Back to Events
+                            </button>
                         </div>
-                    </div>
 
-                    {/* --- Back Button --- */}
-                    <div className="flex justify-end pt-4">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-xl shadow-md hover:bg-blue-700 transition-all font-medium"
-                        >
-                            ← Back to Events
-                        </button>
+                        
                     </div>
                 </div>
-                
             </div>
         </MainLayout>
     );
