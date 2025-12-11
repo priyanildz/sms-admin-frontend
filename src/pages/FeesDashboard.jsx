@@ -2390,43 +2390,6 @@ const FeesDashboard = () => {
                     </tr>
                   );
                 })}
-                {/* Adding manual rows for clarity, although the map should cover them */}
-                <tr className="border py-2">
-                  <td className="border py-2">Pre-Primary (Total)</td>
-                  <td className="border py-2">
-                    ₹{dashboardData.totals['Pre-Primary'] ? dashboardData.totals['Pre-Primary'].toLocaleString() : '0'}
-                  </td>
-                  <td className="border py-2">
-                    ₹{dashboardData.received['Pre-Primary'] ? dashboardData.received['Pre-Primary'].toLocaleString() : '0'}
-                  </td>
-                  <td className="border py-2">
-                    ₹{dashboardData.pending['Pre-Primary'] ? dashboardData.pending['Pre-Primary'].toLocaleString() : '0'}
-                  </td>
-                </tr>
-                <tr className="border py-2">
-                  <td className="border py-2">Primary (Total)</td>
-                  <td className="border py-2">
-                    ₹{dashboardData.totals['Primary'] ? dashboardData.totals['Primary'].toLocaleString() : '0'}
-                  </td>
-                  <td className="border py-2">
-                    ₹{dashboardData.received['Primary'] ? dashboardData.received['Primary'].toLocaleString() : '0'}
-                  </td>
-                  <td className="border py-2">
-                    ₹{dashboardData.pending['Primary'] ? dashboardData.pending['Primary'].toLocaleString() : '0'}
-                  </td>
-                </tr>
-                <tr className="border py-2">
-                  <td className="border py-2">Secondary (Total)</td>
-                  <td className="border py-2">
-                    ₹{dashboardData.totals['Secondary'] ? dashboardData.totals['Secondary'].toLocaleString() : '0'}
-                  </td>
-                  <td className="border py-2">
-                    ₹{dashboardData.received['Secondary'] ? dashboardData.received['Secondary'].toLocaleString() : '0'}
-                  </td>
-                  <td className="border py-2">
-                    ₹{dashboardData.pending['Secondary'] ? dashboardData.pending['Secondary'].toLocaleString() : '0'}
-                  </td>
-                </tr>
               </tbody>
             </table>
           </div>

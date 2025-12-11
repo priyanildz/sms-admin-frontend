@@ -3279,7 +3279,12 @@ const PaymentEntry = () => {
 
                 {/* Modal */}
                 {modalOpen && selectedEntry && (
-                    <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 flex items-center justify-center z-50"
+
+            style={{ 
+                // Using RGBA to create the dimming effect without blurring the backdrop
+                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
+            }}>
                         <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
                             {/* FIX 5: Added max-h-screen-75 and overflow-y-auto to enable scrolling */}
                             <div className="max-h-[75vh] overflow-y-auto pr-2"> 

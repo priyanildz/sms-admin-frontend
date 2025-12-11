@@ -1511,7 +1511,12 @@ const AnnouncementPage = () => {
       
       {/* 🟢 ANNOUNCEMENT CREATION POP-UP (Modal) - UI INTEGRATED BELOW */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
+        <div className="fixed inset-0 flex items-center justify-center z-50"
+        
+            style={{ 
+                // Using RGBA to create the dimming effect without blurring the backdrop
+                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
+            }}>
           <div className="relative bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
             
             {/* Modal Header */}
