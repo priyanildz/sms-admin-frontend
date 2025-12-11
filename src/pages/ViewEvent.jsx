@@ -148,13 +148,8 @@ const ManagedByDropdownMimic = ({ label, selectedList, isDropdownOpen, setIsDrop
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)} // Toggle on click
             >
                 <div className="flex-1 overflow-hidden whitespace-nowrap">
-                    {hasSelections ? (
-                        <span className="text-gray-800 text-base font-medium">
-                            {displayString}
-                        </span>
-                    ) : (
-                        <span className="text-gray-500">Selected Staff Members</span>
-                    )}
+                    
+                    <span className="text-gray-500">Selected Staff Members</span>
                 </div>
                 {/* Down arrow icon */}
                 <ChevronDownIcon 
