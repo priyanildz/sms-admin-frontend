@@ -11,7 +11,12 @@ const AddVehicleModal = ({ show, onClose, onSave, formData, setFormData }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50  bg-opacity-30 flex backdrop-blur-lg justify-center items-center">
+    <div className="fixed inset-0 flex items-center justify-center z-50"
+    
+            style={{ 
+                // Using RGBA to create the dimming effect without blurring the backdrop
+                backgroundColor: 'rgba(50, 50, 50, 0.5)', 
+            }}>
       <div className="bg-white rounded-md shadow-md w-full max-w-2xl p-6 space-y-4">
         <h2 className="text-xl font-semibold mb-4">Add Vehicle</h2>
 
