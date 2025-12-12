@@ -984,7 +984,7 @@ const EditStudent = () => {
           </button>
         </div>
         {/* 🟢 Display View Mode Status in Header (Optional but helpful) */}
-        {isViewMode && <div className="ml-4 px-3 py-1 bg-gray-700 text-white text-xs font-semibold rounded-full">VIEW ONLY</div>}
+{/*         {isViewMode && <div className="ml-4 px-3 py-1 bg-gray-700 text-white text-xs font-semibold rounded-full">VIEW ONLY</div>} */}
       </div>
 
       {/* Layout container from your first code block */}

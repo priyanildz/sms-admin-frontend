@@ -855,7 +855,7 @@ const StudentProfile = ({ studentid, isViewMode }) => {
         <div className="pt-2 px-1 sm:px-1 md:px-2 bg-gray-50 w-12/12 max-w-7xl"> 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Students Overview</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Students Management</h2>
                     <h3 className="text-xl font-semibold text-gray-700">Admission Form</h3>
                 </div>
                 <div className="flex items-center space-x-4">

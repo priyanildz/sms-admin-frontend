@@ -606,7 +606,7 @@ export default function StudentAcademic({ studentid, student }) {
             {/* Header section (unchanged) */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Students Overview</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Students Management</h2>
                 </div>
                 <div className="flex items-center space-x-4">
                     <div className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">
