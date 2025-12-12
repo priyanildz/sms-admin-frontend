@@ -240,6 +240,9 @@ function getPageTitle(route) {
   if (route.startsWith("/export")) return "Export";
   if (route.startsWith("/profile")) return "My Profile";
 
-  return "Unknown Page"; // Fallback for unknown routes
+  // return "Unknown Page"; // Fallback for unknown routes
+
+  
+  return "Staff Management"; // Fallback for unknown routes
 
 }

@@ -295,6 +295,7 @@ function App() {
         <Route path="/exams-report-card" element={<ReportCard />} />
         <Route path="/exams-promote-students" element={<PromoteStudent />} />
         <Route path="/edit-staff/:id" element={<EditStaff />} />
+        
         <Route path="/students/edit-student/:id" element={<EditStudent/>}/>
         <Route path="/add-supervisor" element={<AddSupervisor />} />
       </Routes>
