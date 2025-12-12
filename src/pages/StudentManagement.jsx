@@ -1147,6 +1147,436 @@
 // }
 
 
+// import React, { useEffect, useState } from "react";
+// import MainLayout from "../layout/MainLayout";
+// import { FaSearch } from "react-icons/fa";
+// import { Link } from "react-router-dom";
+// import axios from "axios";
+// // --- Import the API Base URL from the config file (Assumed Import) ---
+// import { API_BASE_URL } from '../config'; 
+
+// // --- Dummy data for filters (Replace with actual API fetch if available) ---
+// const AVAILABLE_STANDARDS = ["All", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+// const AVAILABLE_DIVISIONS = ["All", "A", "B", "C", "D"];
+
+// export default function StudentManagement() {
+//   const [studentList, setStudentList] = useState([]); // This will now represent ACTIVE students
+//   const [lcList, setLCList] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [selectedCard, setSelectedCard] = useState("New Admission");
+//   const [searchQuery, setSearchQuery] = useState("");
+//   // NEW STATE FOR FILTERS
+//   const [selectedStd, setSelectedStd] = useState("All");
+//   const [selectedDiv, setSelectedDiv] = useState("All");
+
+//   // Fetch students data from API
+//   // 🛑 IMPORTANT: Now the fetch call includes Std and Div filters
+//   useEffect(() => {
+//     const fetchStudents = async () => {
+//       try {
+//         setLoading(true);
+
+//         // Construct query parameters for Std and Div
+//         const params = new URLSearchParams();
+//         if (selectedStd !== "All") {
+//           params.append('std', selectedStd);
+//         }
+//         if (selectedDiv !== "All") {
+//           params.append('div', selectedDiv);
+//         }
+//         // The backend `getStudents` is designed to handle this, fetching only ACTIVE students
+
+//         // Fetch ALL ACTIVE STUDENTS (Non-LC) with filters
+//         const response = await fetch(`${API_BASE_URL}api/students?${params.toString()}`, {
+//           headers: {
+//             auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=",
+//           },
+//         });
+
+//         if (!response.ok) {
+//           throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+
+//         const data = await response.json();
+//         setStudentList(Array.isArray(data) ? data : []);
+//         setError(null);
+//       } catch (err) {
+//         setError(err.message);
+//         console.error("Error fetching students:", err);
+//       } 
+//     };
+//     
+//     // for lc students (LC list doesn't need Std/Div filtering since they are inactive/left)
+//     const fetchLCStudents = async () => {
+//       try {
+//         
+//         // Fetch all LC students
+//         const response = await axios.get(
+//           `${API_BASE_URL}api/lcstudent`,
+//           {
+//             headers: {
+//               auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=",
+//             },
+//           }
+//         );
+//         if (response.status !== 200) {
+//           throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+//         const data = response.data; 
+//         setLCList(Array.isArray(data) ? data : []);
+//         setError(null);
+//       } catch (error) {
+//         setError(error.message);
+//         console.error("Error fetching LC students:", error);
+//       }
+//     };
+
+//     // Run all fetches concurrently, but ensure `fetchStudents` runs with current filters
+//     Promise.all([fetchStudents(), fetchLCStudents()])
+//         .catch(err => console.error("One or more initial fetches failed:", err))
+//         .finally(() => setLoading(false));
+
+//   // Re-run effect when standard or division filters change
+//   }, [selectedStd, selectedDiv]);
+
+//   const activeStudents = studentList;
+//   const newAdmissions = activeStudents.length;
+
+//   const totalStudents = activeStudents.length + lcList.length;
+//   const lcStudents = lcList.length;
+
+//   const cards = [
+//     {
+//       title: "Total Students",
+//       count: totalStudents,
+//       color: "blue",
+//       key: "Total",
+//     },
+//     {
+//       title: "New Admission",
+//       count: newAdmissions,
+//       color: "green",
+//       key: "New Admission",
+//     },
+//     { title: "LC Students", count: lcStudents, color: "red", key: "LC Students" },
+//   ];
+
+//   const combinedAllStudents = [...activeStudents, ...lcList];
+
+//   // --- Filtering Logic Updated to include middle/last name search ---
+//   const filteredStudents = (() => {
+//     const query = searchQuery.toLowerCase();
+//     
+//     // 🛑 UPDATED: Search filter checks firstname, middlename, and lastname
+//     const filterByName = (student) => {
+//       const fullName = `${student.firstname || ''} ${student.middlename || ''} ${student.lastname || ''}`.toLowerCase();
+//       const grNo = (student.admission?.grno || '').toLowerCase();
+//       const admissionNo = (student.admission?.admissionno || '').toLowerCase();
+//         
+//       return fullName.includes(query) || grNo.includes(query) || admissionNo.includes(query);
+//     }
+
+//     let listToFilter = [];
+
+//     if (selectedCard === "Total") {
+//       // For Total, we filter the combined list. Note: activeStudents already respect Std/Div filters from fetch.
+//       listToFilter = combinedAllStudents;
+//     } else if (selectedCard === "New Admission") {
+//       // Filter the Active Students (studentList), which already respects Std/Div filters from fetch.
+//       listToFilter = activeStudents;
+//     } else if (selectedCard === "LC Students") {
+//       // Filter the LC Students list (no Std/Div filter applied at fetch level)
+//       listToFilter = lcList;
+//     } else {
+//         // Default view, matching the initial state
+//         listToFilter = activeStudents;
+//     }
+//     
+//     // Apply search query filter
+//     return listToFilter.filter(filterByName);
+//   })();
+
+//   const getTableHeaders = () => {
+//     // 🛑 MODIFICATION: Swapping "Admission no." and "Students Name"
+//     const defaultHeaders = [
+//       "Students Name", // 1st column
+//       "Admission no.", // 2nd column
+//       "GR No.", 
+//       "Std",
+//       "Div",
+//       "Gender",
+//       "Contact no.",
+//       "Status",
+//     ];
+
+//     if (selectedCard === "LC Students") {
+//       // If LC Students is selected, the first header is "LC no."
+//       // Swap is applied: Students Name, LC no., GR No., etc.
+//       return [defaultHeaders[0], "LC no.", ...defaultHeaders.slice(2), "Action"];
+//     } else if (selectedCard === "Total" || selectedCard === "New Admission") {
+//       // Add 'Action' column to both Total and New Admission views
+//       return [...defaultHeaders, "Action"];
+//     }
+//     return [];
+//   };
+
+//   const capitalizeName = (name) => {
+//     if (!name || typeof name !== 'string') {
+//         return ""; 
+//     }
+//     
+//     return name
+//       .split(" ")
+//       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+//       .join(" ");
+//   };
+
+//   const renderTableRow = (student) => {
+//     // Helper function to safely read nested and optional properties
+//     const safeRead = (path, defaultValue = "") => {
+//       const parts = path.split('.');
+//       let current = student;
+//       for (const part of parts) {
+//         if (current === null || current === undefined) {
+//           return defaultValue;
+//         }
+//         current = current[part];
+//       }
+//       return current === null || current === undefined ? defaultValue : current;
+//     };
+
+//     // Determine if the student is an LC student based on status field in API response
+//     const isLCStudent = safeRead('status') === false; 
+
+//     // Common cell rendering for Student Name and Admission No. (swapped order)
+//     const studentNameCell = (
+//         <td className="p-2 border">
+//             {capitalizeName(safeRead('firstname'))}{" "}
+//             {capitalizeName(safeRead('middlename'))}{" "}
+//             {capitalizeName(safeRead('lastname'))}
+//         </td>
+//     );
+//     const admissionNoCell = (
+//         <td className="p-2 border">{safeRead('admission.admissionno')}</td>
+//     );
+//     const lcNoCell = (
+//         <td className="p-2 border">{safeRead('lcno') || safeRead('admission.admissionno')}</td>
+//     );
+    
+
+//     if (selectedCard === "Total" || selectedCard === "New Admission") {
+//       return (
+//         <tr key={student._id || student.id} className="hover:bg-gray-50">
+//           {/* 🛑 SWAPPED: Students Name then Admission No. */}
+//           {studentNameCell}
+//           {admissionNoCell} 
+            
+//           <td className="p-2 border">{safeRead('admission.grno').toUpperCase() || ''}</td>
+//           <td className="p-2 border">{safeRead('admission.admissionstd')}</td>
+//           <td className="p-2 border">
+//             {safeRead('admission.admissiondivision').toUpperCase() || ''}
+//           </td>
+//           <td className="p-2 border">{safeRead('gender')}</td>
+//           <td className="p-2 border">{safeRead('parent.primarycontact')}</td>
+//           <td className="p-2 border">
+//             {isLCStudent ? "Inactive (LC)" : "Active"}
+//           </td>
+//           {/* ACTION COLUMN ADDED/MAINTAINED FOR ALL */}
+//           <td className="p-3 border">
+//             <Link to={`edit-student/${safeRead('_id')}?mode=view`} className="text-gray-600 hover:text-blue-800 hover:underline mr-3">
+//               View
+//             </Link>
+//             <Link to={`edit-student/${safeRead('_id')}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+//               Edit
+//             </Link>
+//           </td>
+//         </tr>
+//       );
+//     } else if (selectedCard === "LC Students") {
+//       return (
+//         <tr key={student.id} className="hover:bg-gray-50">
+//           {/* 🛑 SWAPPED: Students Name then LC No. */}
+//           {studentNameCell}
+//           {lcNoCell}
+            
+//           <td className="p-2 border">{safeRead('admission.grno')}</td>
+//           <td className="p-2 border">{safeRead('admission.admissionstd')}</td>
+//           <td className="p-2 border">{safeRead('admission.admissiondivision')}</td>
+//           <td className="p-2 border">{safeRead('gender')}</td>
+//           <td className="p-2 border">{safeRead('parent.primarycontact')}</td>
+//           <td className="p-2 border">
+//             {/* LC students are always inactive */}
+//             {"Inactive (LC)"}
+//           </td>
+//           {/* ACTION COLUMN ADDED */}
+//           <td className="p-3 border">
+//             {/* LC students typically only have a View mode */}
+//             <Link to={`edit-student/${safeRead('_id')}?mode=view`} className="text-gray-600 hover:text-blue-800 hover:underline mr-3">
+//               View
+//             </Link>
+//             <Link to={`edit-student/${safeRead('_id')}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+//               Edit
+//             </Link>
+//           </td>
+//         </tr>
+//       );
+//     }
+//     return null;
+//   };
+
+//   // Loading/Error states remain the same...
+//   if (loading) {
+//     return (
+//       <MainLayout>
+//         <div className="h-full w-full p-6 bg-gray-50">
+//           <div className="flex items-center justify-center h-64">
+//             <div className="text-center">
+//               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+//               <p className="text-gray-600">Loading students...</p>
+//             </div>
+//           </div>
+//         </div>
+//       </MainLayout>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <MainLayout>
+//         <div className="h-full w-full p-6 bg-gray-50">
+//           <div className="flex items-center justify-center h-64">
+//             <div className="text-center">
+//               <div className="text-red-500 text-4xl mb-4">⚠️</div>
+//               <p className="text-red-600 text-lg font-medium mb-2">
+//                 Error loading students
+//               </p>
+//               <p className="text-gray-600">{error}</p>
+//               <button
+//                 onClick={() => window.location.reload()}
+//                 className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
+//               >
+//                 Retry
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       </MainLayout>
+//     );
+//   }
+
+
+//   return (
+//     <MainLayout>
+//       <div className="h-full w-full p-6 bg-gray-50">
+//         {/* Search bar, Filters, and Add button */}
+//         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+//             
+//             {/* Search Input */}
+//             <div className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm border border-gray-300 w-full md:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500 order-1 md:order-1">
+//                 <input
+//                   type="text"
+//                   placeholder="Search by Name/GR/Admission No..."
+//                   value={searchQuery}
+//                   onChange={(e) => setSearchQuery(e.target.value)}
+//                   className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400 pr-2"
+//                 />
+//                 <FaSearch className="text-gray-400 ml-2 mr-3" />
+//             </div>
+
+//             {/* Filter Dropdowns and Add Button (Grouped on the right) */}
+//             <div className="flex items-center space-x-4 order-2 md:order-2">
+//                 <span className="font-medium text-gray-700 whitespace-nowrap hidden sm:inline">Std:</span>
+//                 <select
+//                     value={selectedStd}
+//                     onChange={(e) => setSelectedStd(e.target.value)}
+//                     className="p-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm focus:ring-blue-500 focus:border-blue-500"
+//                 >
+//                     <option value="All">Select Standard</option>
+//                     {AVAILABLE_STANDARDS.filter(s => s !== "All").map(std => (
+//                         <option key={std} value={std}>{std}</option>
+//                     ))}
+//                 </select>
+
+//                 <select
+//                     value={selectedDiv}
+//                     onChange={(e) => setSelectedDiv(e.target.value)}
+//                     className="p-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm focus:ring-blue-500 focus:border-blue-500"
+//                 >
+//                     <option value="All">Select Division</option>
+//                     {AVAILABLE_DIVISIONS.filter(d => d !== "All").map(div => (
+//                         <option key={div} value={div}>{div}</option>
+//                     ))}
+//                 </select>
+
+//                 <Link to="/students-admission">
+//                   <button className="flex items-center bg-blue-600 text-white font-medium py-2 px-5 rounded-full shadow-md hover:bg-blue-700 transition-all duration-150 whitespace-nowrap">
+//                     + Add
+//                   </button>
+//                 </Link>
+//             </div>
+
+//         </div>
+
+//         {/* Cards */}
+//         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+//           {cards.map((card) => (
+//             <div
+//               key={card.key}
+//               onClick={() => setSelectedCard(card.key)}
+//               className={`cursor-pointer bg-white p-6 rounded-xl shadow text-center hover:bg-gray-100 ${selectedCard === card.key ? "ring-2 ring-blue-500" : ""
+//                 }`}
+//             >
+//               <h3 className="text-lg font-semibold text-gray-700">
+//                 {card.title}
+//               </h3>
+//               <p className={`text-2xl font-bold text-${card.color}-600`}>
+//                 {card.count}
+//               </p>
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* Table */}
+//         {selectedCard && (
+//           <div className="bg-white p-6 rounded-xl shadow">
+//             <h2 className="text-xl font-semibold mb-4 text-gray-800">
+//               {selectedCard} Student List
+//             </h2>
+
+//             <div className="overflow-x-auto">
+//               <table className="w-full border border-gray-300 text-sm text-left">
+//                 <thead className="bg-gray-100 text-gray-700 font-semibold">
+//                   <tr>
+//                     {getTableHeaders().map((heading, index) => (
+//                       <th key={index} className="p-2 border">
+//                         {heading}
+//                       </th>
+//                     ))}
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {filteredStudents.map((student, index) =>
+//                     renderTableRow(student, index)
+//                   )}
+//                   {filteredStudents.length === 0 && (
+//                     <tr>
+//                       <td colSpan={getTableHeaders().length} className="text-center p-4 text-gray-500">
+//                         No students found.
+//                       </td>
+//                     </tr>
+//                   )}
+//                 </tbody>
+//               </table>
+//           </div>
+//           </div>
+//         )}
+//       </div>
+//     </MainLayout>
+//   );
+// }
+
+
 import React, { useEffect, useState } from "react";
 import MainLayout from "../layout/MainLayout";
 import { FaSearch } from "react-icons/fa";
@@ -1158,6 +1588,8 @@ import { API_BASE_URL } from '../config';
 // --- Dummy data for filters (Replace with actual API fetch if available) ---
 const AVAILABLE_STANDARDS = ["All", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const AVAILABLE_DIVISIONS = ["All", "A", "B", "C", "D"];
+// 🆕 New Status Options
+const AVAILABLE_STATUSES = ["All", "Active", "Inactive (LC)"];
 
 export default function StudentManagement() {
   const [studentList, setStudentList] = useState([]); // This will now represent ACTIVE students
@@ -1169,6 +1601,8 @@ export default function StudentManagement() {
   // NEW STATE FOR FILTERS
   const [selectedStd, setSelectedStd] = useState("All");
   const [selectedDiv, setSelectedDiv] = useState("All");
+  // 🆕 NEW STATE FOR STATUS FILTER
+  const [selectedStatus, setSelectedStatus] = useState("All");
 
   // Fetch students data from API
   // 🛑 IMPORTANT: Now the fetch call includes Std and Div filters
@@ -1264,11 +1698,11 @@ export default function StudentManagement() {
 
   const combinedAllStudents = [...activeStudents, ...lcList];
 
-  // --- Filtering Logic Updated to include middle/last name search ---
+  // --- Filtering Logic Updated to handle Status filter ---
   const filteredStudents = (() => {
     const query = searchQuery.toLowerCase();
     
-    // 🛑 UPDATED: Search filter checks firstname, middlename, and lastname
+    // Search filter checks firstname, middlename, and lastname
     const filterByName = (student) => {
       const fullName = `${student.firstname || ''} ${student.middlename || ''} ${student.lastname || ''}`.toLowerCase();
       const grNo = (student.admission?.grno || '').toLowerCase();
@@ -1279,17 +1713,28 @@ export default function StudentManagement() {
 
     let listToFilter = [];
 
-    if (selectedCard === "Total") {
-      // For Total, we filter the combined list. Note: activeStudents already respect Std/Div filters from fetch.
-      listToFilter = combinedAllStudents;
-    } else if (selectedCard === "New Admission") {
-      // Filter the Active Students (studentList), which already respects Std/Div filters from fetch.
-      listToFilter = activeStudents;
-    } else if (selectedCard === "LC Students") {
-      // Filter the LC Students list (no Std/Div filter applied at fetch level)
-      listToFilter = lcList;
-    } else {
-        // Default view, matching the initial state
+    // Determine the base list based on the selected card and status filter
+    if (selectedCard === "Total") {
+        if (selectedStatus === "Active") {
+            // Filter combined list to show only active students
+            listToFilter = combinedAllStudents.filter(s => s.status !== false);
+        } else if (selectedStatus === "Inactive (LC)") {
+            // Filter combined list to show only inactive/LC students
+            listToFilter = combinedAllStudents.filter(s => s.status === false);
+        } else {
+            // All students
+            listToFilter = combinedAllStudents;
+        }
+    } else if (selectedCard === "New Admission") {
+        // New Admission is equivalent to activeStudents list, subject to Std/Div filters
+        // If Status is set to Inactive here, we show nothing as New Admission implies Active
+        listToFilter = (selectedStatus === "Inactive (LC)") ? [] : activeStudents;
+    } else if (selectedCard === "LC Students") {
+        // LC Students is equivalent to lcList, no further filtering needed here
+        // If Status is set to Active here, we show nothing as LC implies Inactive
+        listToFilter = (selectedStatus === "Active") ? [] : lcList;
+    } else {
+        // Default case
         listToFilter = activeStudents;
     }
     
@@ -1298,7 +1743,7 @@ export default function StudentManagement() {
   })();
 
   const getTableHeaders = () => {
-    // 🛑 MODIFICATION: Swapping "Admission no." and "Students Name"
+    // 🛑 MODIFICATION: Swapping "Admission no." and "Students Name"
     const defaultHeaders = [
       "Students Name", // 1st column
       "Admission no.", // 2nd column
@@ -1312,7 +1757,7 @@ export default function StudentManagement() {
 
     if (selectedCard === "LC Students") {
       // If LC Students is selected, the first header is "LC no."
-      // Swap is applied: Students Name, LC no., GR No., etc.
+      // Swap is applied: Students Name, LC no., GR No., etc.
       return [defaultHeaders[0], "LC no.", ...defaultHeaders.slice(2), "Action"];
     } else if (selectedCard === "Total" || selectedCard === "New Admission") {
       // Add 'Action' column to both Total and New Admission views
@@ -1349,21 +1794,21 @@ export default function StudentManagement() {
     // Determine if the student is an LC student based on status field in API response
     const isLCStudent = safeRead('status') === false; 
 
-    // Common cell rendering for Student Name and Admission No. (swapped order)
-    const studentNameCell = (
-        <td className="p-2 border">
-            {capitalizeName(safeRead('firstname'))}{" "}
-            {capitalizeName(safeRead('middlename'))}{" "}
-            {capitalizeName(safeRead('lastname'))}
-        </td>
-    );
-    const admissionNoCell = (
-        <td className="p-2 border">{safeRead('admission.admissionno')}</td>
-    );
-    const lcNoCell = (
-        <td className="p-2 border">{safeRead('lcno') || safeRead('admission.admissionno')}</td>
-    );
-    
+    // Common cell rendering for Student Name and Admission No. (swapped order)
+    const studentNameCell = (
+        <td className="p-2 border">
+            {capitalizeName(safeRead('firstname'))}{" "}
+            {capitalizeName(safeRead('middlename'))}{" "}
+            {capitalizeName(safeRead('lastname'))}
+        </td>
+    );
+    const admissionNoCell = (
+        <td className="p-2 border">{safeRead('admission.admissionno')}</td>
+    );
+    const lcNoCell = (
+        <td className="p-2 border">{safeRead('lcno') || safeRead('admission.admissionno')}</td>
+    );
+    
 
     if (selectedCard === "Total" || selectedCard === "New Admission") {
       return (
@@ -1371,7 +1816,7 @@ export default function StudentManagement() {
           {/* 🛑 SWAPPED: Students Name then Admission No. */}
           {studentNameCell}
           {admissionNoCell} 
-            
+            
           <td className="p-2 border">{safeRead('admission.grno').toUpperCase() || ''}</td>
           <td className="p-2 border">{safeRead('admission.admissionstd')}</td>
           <td className="p-2 border">
@@ -1399,7 +1844,7 @@ export default function StudentManagement() {
           {/* 🛑 SWAPPED: Students Name then LC No. */}
           {studentNameCell}
           {lcNoCell}
-            
+            
           <td className="p-2 border">{safeRead('admission.grno')}</td>
           <td className="p-2 border">{safeRead('admission.admissionstd')}</td>
           <td className="p-2 border">{safeRead('admission.admissiondivision')}</td>
@@ -1486,7 +1931,7 @@ export default function StudentManagement() {
 
             {/* Filter Dropdowns and Add Button (Grouped on the right) */}
             <div className="flex items-center space-x-4 order-2 md:order-2">
-                <span className="font-medium text-gray-700 whitespace-nowrap hidden sm:inline">Std:</span>
+{/*                 <span className="font-medium text-gray-700 whitespace-nowrap hidden sm:inline">Std:</span> */}
                 <select
                     value={selectedStd}
                     onChange={(e) => setSelectedStd(e.target.value)}
@@ -1508,6 +1953,18 @@ export default function StudentManagement() {
                         <option key={div} value={div}>{div}</option>
                     ))}
                 </select>
+                
+                {/* 🆕 Status Filter Dropdown */}
+                <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm focus:ring-blue-500 focus:border-blue-500"
+                >
+                    {AVAILABLE_STATUSES.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
+                </select>
+
 
                 <Link to="/students-admission">
                   <button className="flex items-center bg-blue-600 text-white font-medium py-2 px-5 rounded-full shadow-md hover:bg-blue-700 transition-all duration-150 whitespace-nowrap">
