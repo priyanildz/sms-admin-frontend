@@ -2878,15 +2878,14 @@ export default function StudentAdmission() {
                     value={formData.droppoint}
                     onChange={(val) => handleChange("droppoint", val)}
                   />
-                </>
-              )}
-
-              <SelectField
+<SelectField
                 label="Mode of Transport"
                 options={["Select", "bus", "van", "rickshaw", "self", "other"]}
                 value={formData.modetransport}
                 onChange={(val) => handleChange("modetransport", val)}
               />
+                </>
+              )}
             </div>
           </div>
 
