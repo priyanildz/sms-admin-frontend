@@ -212,7 +212,7 @@ const ClassAssignmentFormModal = ({ staffs, staffError, API_BASE_URL, AUTH_TOKEN
 // Main ClassAssign Component (The Page View)
 // =========================================================================
 export default function ClassAssign() {
-    const [isModalOpen, setIsModalOpen] = useState(false); 
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // States for Staff Data (Dropdown)
     const [staffs, setStaffs] = useState([]); 
