@@ -556,7 +556,7 @@ const TransportVehicle = () => {
                     onChange={(e) => setTypeFilter(e.target.value)}
                     className="border px-3 py-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 >
-                    <option value="all">Filter: All Types</option>
+                    <option value="all">All Types</option>
                     <option value="bus">Bus</option>
                     <option value="van">Van</option>
                     <option value="auto">Auto</option>
@@ -568,7 +568,7 @@ const TransportVehicle = () => {
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="border px-3 py-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 >
-                    <option value="all">Filter: All Statuses</option>
+                    <option value="all">All Statuses</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                 </select>
