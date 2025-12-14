@@ -239,10 +239,11 @@ function getPageTitle(route) {
   if (route.startsWith("/notifications")) return "Notification";
   if (route.startsWith("/export")) return "Export";
   if (route.startsWith("/profile")) return "My Profile";
+  if (route.startsWith("/add-supervisor")) return "Transport Management";
 
   // return "Unknown Page"; // Fallback for unknown routes
 
   
-  return "Staff Management"; // Fallback for unknown routes
+  return "Unknown Page"; // Fallback for unknown routes
 
 }
