@@ -91,6 +91,7 @@ export const academicLinks = [
 export const transportLinks = [
   { to: "/transport", text: "Vehicle Management", icon: faBus },
   { to: "/transport-staff", text: "Drivers & Supervisors", icon: faUserShield },
+  { to: "/transport-assign", text: "Vehicle Assignment", icon: faTasks },
   { to: "/transport-routes", text: "Routes & Student Assign", icon: faClipboardList },
   { to: "/transport-gps-tracking", text: "Live GPS Tracking", icon: faMapMarkedAlt },
 ];

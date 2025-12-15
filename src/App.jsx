@@ -217,6 +217,8 @@ import AddAnnouncement from "./components/AddAnnouncement"
 import EditStaff from "./pages/EditStaff";
 import EditStudent from "./pages/EditStudent";
 import AddSupervisor from "./pages/AddSupervisor";
+import EditTransportStaff from "./pages/EditTransportStaff";
+import VehicleAssign from "./pages/VehicleAssign";
 
 function App() {
   return (
@@ -256,6 +258,11 @@ function App() {
         <Route path="/academics-block-allotment" element={<AcademicBlock />} />
         <Route path="/transport" element={<TransportVehicle />} />
         <Route path="/transport-staff" element={<TransportStaff />} />
+        {/* ✅ FIX: ADD THE MISSING ROUTE FOR EDITING TRANSPORT STAFF HERE */}
+        <Route path="/transport-staff/edit/:staffId" element={<EditTransportStaff />} />
+        {/* ✅ NEW ROUTE: For Vehicle Assignment Tab */}
+        <Route path="/transport-assign" element={<VehicleAssign />} />
+
         <Route path="/transport-routes" element={<TransportRoutes />} />
         <Route path="/transport-gps-tracking" element={<TransportTracking />} />
         <Route path="/announcements" element={<AnnouncementPage />} />

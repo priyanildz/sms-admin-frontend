@@ -64,6 +64,11 @@ export default function MainLayout({ children }) {
     if (currentRoute.startsWith("/profile")) {
       return profileLinks;
     }
+    
+    if (currentRoute.startsWith("/add-supervisor")) {
+      return transportLinks;
+    }
+
     if (currentRoute.startsWith("/exams")) {
       return examLinks; // Return main links for exams
     }
@@ -239,8 +244,6 @@ function getPageTitle(route) {
   if (route.startsWith("/notifications")) return "Notification";
   if (route.startsWith("/export")) return "Export";
   if (route.startsWith("/profile")) return "My Profile";
-  if (route.startsWith("/add-supervisor")) return "Transport Management";
-
   // return "Unknown Page"; // Fallback for unknown routes
 
   
