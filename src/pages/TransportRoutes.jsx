@@ -3222,7 +3222,7 @@ const TransportRoutes = () => {
                     </div>
 
                     <div className="flex justify-center">
-                        <h2 className="text-2xl font-semibold">Route Schedule (Vehicle Assignments)</h2>
+                        <h2 className="text-2xl font-semibold">Route Schedule</h2>
                     </div>
 
                     <div className="overflow-x-auto">
