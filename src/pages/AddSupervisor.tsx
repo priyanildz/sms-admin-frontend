@@ -651,17 +651,7 @@ if (key === 'ifscCode') {
                                     </div>
                                     <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5">
 
-                                        {/* Designation */}
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Designation <span className="text-red-500">*</span></label>
-                                            <select name="designation" value={formData.designation} onChange={handleInputChange}
-                                                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-400 appearance-none ${errors.designation ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}>
-                                                <option value="" disabled>Select designation</option>
-                                                <option value="Driver">Driver</option>
-                                                <option value="Supervisor">Supervisor</option>
-                                            </select>
-                                            <ErrorMessage error={errors.designation} />
-                                        </div>
+                                     
 
                                         {/* Name Split */}
                                         {['firstName', 'middleName', 'lastName'].map((field) => (
@@ -673,6 +663,18 @@ if (key === 'ifscCode') {
                                                 <ErrorMessage error={errors[field]} />
                                             </div>
                                         ))}
+
+{/* Designation */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Designation <span className="text-red-500">*</span></label>
+                                            <select name="designation" value={formData.designation} onChange={handleInputChange}
+                                                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-400 appearance-none ${errors.designation ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}>
+                                                <option value="" disabled>Select designation</option>
+                                                <option value="Driver">Driver</option>
+                                                <option value="Supervisor">Supervisor</option>
+                                            </select>
+                                            <ErrorMessage error={errors.designation} />
+                                        </div>
 
                                         {/* DOB */}
                                         <div>
