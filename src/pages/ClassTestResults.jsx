@@ -261,8 +261,8 @@ const ClassTestResults = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null); 
 
-  const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-  const divOptions = ["A", "B", "C"];
+  const stdOptions = ["Nursery", "Junior", "Senior","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+  const divOptions = ["A", "B", "C", "D", "E"];
   const termOptions = ["Term 1", "Term 2", "Final"]; // Added mock options for Term
   const [tests, setTests] = useState([]);
 

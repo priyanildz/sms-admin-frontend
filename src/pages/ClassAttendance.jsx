@@ -391,7 +391,7 @@ export default function ClassAttendancePage() {
     "December",
   ];
 
-  const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+  const stdOptions = ["Nursery", "Junior", "Senior","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
   const divOptions = ["A", "B", "C", "D", "E"];
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);

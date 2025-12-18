@@ -450,7 +450,7 @@ const ClassroomManagement = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const stdOptions = ["1", "2", "3", "4", "5","6","7","8","9","10"];
+  const stdOptions = ["Nursery", "Junior", "Senior","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
   // FIX 1: Extended division options to include D and E
   const divOptions = ["A", "B", "C", "D", "E"];
 

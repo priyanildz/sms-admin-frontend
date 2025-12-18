@@ -852,7 +852,7 @@ const ClassAssessment = () => {
     const [error, setError] = useState(null);
     const [staffError, setStaffError] = useState(null); // 🆕 Error state for staff
 
-    const stdOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+    const stdOptions = ["nursery", "Junior", "Senior","1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
     const divOptions = ["A", "B", "C", "D", "E"];
 
     const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU="; 
