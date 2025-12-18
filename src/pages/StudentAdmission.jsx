@@ -2711,7 +2711,7 @@ export default function StudentAdmission() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+{/*             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <InputField
                 label="Admission Number"
                 value={formData.admissionno}
@@ -2724,7 +2724,7 @@ export default function StudentAdmission() {
                 onChange={(val) => handleChange("grno", val)}
                 placeholder="Leave blank for auto-generation"
               />
-            </div>
+            </div> */}
             <div className="mt-6">
               <SelectField
                 label="Admission Type"
@@ -2788,7 +2788,7 @@ export default function StudentAdmission() {
             <div className="-mt-6 -mx-6 bg-blue-400 text-white px-4 py-2 rounded-t">
               <h4 className="text-xl font-semibold">Upload Documents</h4>
             </div>
-            <div className="mt-6 border p-4 rounded-lg bg-gray-50">
+            <div className="mt-6 rounded-lg bg-white-50">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     {/* Document Type Dropdown */}
                     <div>
@@ -2880,7 +2880,7 @@ export default function StudentAdmission() {
                   />
 <SelectField
                 label="Mode of Transport"
-                options={["Select", "bus", "van", "rickshaw", "self", "other"]}
+                options={["Select", "bus", "van", "rickshaw"]}
                 value={formData.modetransport}
                 onChange={(val) => handleChange("modetransport", val)}
               />
