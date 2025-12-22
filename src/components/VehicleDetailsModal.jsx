@@ -293,7 +293,7 @@ import axios from "axios";
 
 // NOTE: Constants related to file uploads are kept for image logic only.
 const CLOUDINARY_UPLOAD_URL =
-  "https://api.cloudinary.com/v1_1/dfc8sai1i/auto/upload"; 
+  "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload"; 
 const CLOUDINARY_UPLOAD_PRESET = "sspd-student-management";
 
 const VehicleDetailsModal = ({ show, onClose, vehicle, API_BASE_URL }) => {

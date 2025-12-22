@@ -727,7 +727,7 @@ import axios from "axios";
 // NOTE: Since the file uploads rely on an external service (like Cloudinary, based on your student form),
 // we define the necessary constants here. Ensure these match your actual setup.
 const CLOUDINARY_UPLOAD_URL =
-  "https://api.cloudinary.com/v1_1/dfc8sai1i/auto/upload"; // Placeholder/Example URL
+  "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload"; // Placeholder/Example URL
 const CLOUDINARY_UPLOAD_PRESET = "sspd-student-management"; // Reusing your student preset for this example
 
 // 🌟 NEW: Vehicle Document Options - Match schema field names for tracking

@@ -345,7 +345,7 @@ import { User, X } from 'lucide-react';
 import axios from 'axios';
 
 const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
-const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dfc8sai1i/auto/upload"; 
+const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload"; 
 const CLOUDINARY_PRESET = "sspd-student-management"; 
 
 const uploadToCloudinary = async (file, staffData) => {

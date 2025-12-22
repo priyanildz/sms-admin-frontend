@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config'; // 🔥 FIX 1: Import correct base URL
 import { useNavigate } from "react-router-dom"; 
 
 // --- Constants for Upload & Documents ---
-const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dfc8sai1i/auto/upload";
+const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload";
 const CLOUDINARY_UPLOAD_PRESET = "sspd-student-management";
 
 const IFSC_API_URL = "https://ifsc.razorpay.com/";

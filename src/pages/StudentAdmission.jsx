@@ -2098,7 +2098,7 @@ export default function StudentAdmission() {
 
     try {
       const res = await axios.post(
-        "https://api.cloudinary.com/v1_1/dfc8sai1i/auto/upload",
+        "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload",
         uploadFormData
       );
       return { url: res.data.secure_url, filename: file.name };
