@@ -477,7 +477,9 @@ const ExamPaperEval = () => {
                                 paperEvalData.map((entry) => (
                                     <tr key={entry._id} className="hover:bg-gray-50 transition-all">
                                         <td className="py-2 px-4 border">
-                                            {entry.assignedteacher?.firstname || 'N/A'}
+                                            {entry.assignedteacher 
+        ? `${entry.assignedteacher.firstname} ${entry.assignedteacher.lastname || ''}`.trim() 
+        : 'N/A'}
                                         </td>
                                         <td className="py-2 px-4 border">{entry.standard}</td>
                                         <td className="py-2 px-4 border">{entry.division}</td>

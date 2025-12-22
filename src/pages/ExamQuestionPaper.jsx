@@ -1692,6 +1692,9 @@ const ExamQuestionPaper = () => {
             className="w-full border border-gray-300 rounded-md px-4 py-2 text-base bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="">Select</option>
+            <option value="nursey">Nursey</option>
+            <option value="junior">Junior</option>
+            <option value="senior">Senior</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -1797,7 +1800,8 @@ const ExamQuestionPaper = () => {
                         {/* View Button */}
                         <button
                           // ✅ FIX: Use the correct field name 'pdfPath' for viewing the PDF
-                          onClick={() => window.open(`${API_BASE_URL}api/view-pdf/${set.pdfPath}`, "_blank")}
+disabled={true}                          
+onClick={() => window.open(`${API_BASE_URL}api/view-pdf/${set.pdfPath}`, "_blank")}
                           className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                         >
                           <svg
