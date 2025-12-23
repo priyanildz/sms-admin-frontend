@@ -1121,7 +1121,7 @@ import History from "./Student Edit/StudentHistory";
 
 // --- Configuration and Links ---
 import { API_BASE_URL } from '../config'; 
-import { editStudentLinks } from "../components/sidebarLinks";
+import {editStudentLinks} from "../components/SidebarLinks";
 
 const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
 
