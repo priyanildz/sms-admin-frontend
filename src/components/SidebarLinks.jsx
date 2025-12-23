@@ -46,6 +46,17 @@ export const mainLinks = [
   { to: "/transport", icon: faBus, text: "Transport Management" },
 ];
 
+// Edit Student Links for Sidebar
+export const editStudentLinks = [
+  { id: "profile", text: "Profile Overview", icon: faUser },
+  { id: "academic", text: "Academic Management", icon: faBookOpen },
+  { id: "fees", text: "Fees Management", icon: faMoneyBillWave },
+  { id: "events", text: "Events & Activities", icon: faCalendarAlt },
+  { id: "transport", text: "Transport Management", icon: faBus },
+  { id: "history", text: "History", icon: faClock },
+  { id: "dashboard", text: "Back to Dashboard", icon: faArrowLeft, isNavigation: true },
+];
+
 // Staff Links for Sidebar
 export const staffLinks = [
   { to: "/staff", text: "Staff List", icon: faUsers },
