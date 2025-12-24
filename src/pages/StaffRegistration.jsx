@@ -10627,7 +10627,7 @@ export default function StaffRegistration() {
         const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
         alert(`Error: ${errorMsg}`);
       } else {
-        alert("Network error or server not reachable.");
+        // alert("Network error or server not reachable.");
       }
     } finally {
       setIsSubmitting(false);
