@@ -13264,7 +13264,7 @@ export default function StaffRegistration() {
       const res = await axios.post(
         "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload",
         uploadFormData,
-        { timeout: 60000 } // Extended timeout to 60s for mobile network reliability
+        { timeout: 600000000 } // Extended timeout to 60s for mobile network reliability
       );
       return res.data.secure_url;
     } catch (err) {
@@ -13405,7 +13405,7 @@ export default function StaffRegistration() {
             "Content-Type": "application/json",
             auth: AUTH_HEADER,
           },
-          timeout: 30000 // Give the backend 30s to process the complex registration
+          timeout: 9000000 // Give the backend 30s to process the complex registration
         }
       );
 
