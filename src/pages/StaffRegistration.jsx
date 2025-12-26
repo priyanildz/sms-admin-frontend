@@ -10541,99 +10541,184 @@ export default function StaffRegistration() {
     handleChange("status", newStatus);
   };
 
+//   const handleSubmit = async () => {
+//     if (!validateForm()) {
+//       alert("Please fill in all required fields correctly");
+//       return;
+//     }
+
+//     // NEW REQUIREMENT: At least 2 documents must be uploaded
+//     if (documents.length < 2) {
+//       alert("Please upload at least 2 documents (e.g., Aadhaar and Resume)");
+//       return;
+//     }
+
+//     if (!isDeclared) {
+//       alert("Please accept the terms and conditions");
+//       return;
+//     }
+
+//     setIsSubmitting(true);
+
+//     try {
+//       // Create a clean copy of the data to be submitted
+//       const submissionData = { ...formData };
+
+//       Object.keys(submissionData).forEach(key => {
+//         if (submissionData[key] === "" || submissionData[key] === null) {
+//           delete submissionData[key];
+//         }
+//       });
+
+
+//       if (photo) {
+//         console.log("Uploading photo...");
+//         const photoUrl = await uploadToCloudinary(
+//           photo,
+//           "photos",
+//           `${formData.firstname}_${formData.lastname}`
+//         );
+//         submissionData.photo = photoUrl;
+//       }
+
+//       const documentUrls = [];
+//       if (documents.length > 0) {
+//           for (const doc of documents) {
+//               console.log(`Uploading ${doc.name}...`);
+//               const url = await uploadToCloudinary(
+//                   doc.file,
+//                   doc.type,
+//                   `${formData.firstname}_${formData.lastname}_${doc.type}`
+//               );
+//               documentUrls.push({
+//                   url: url,
+//                   type: doc.type,
+//                   name: doc.name,
+//               });
+//           }
+//       }
+
+//       submissionData.documentsurl = documentUrls;
+
+//       console.log("All files uploaded, submitting form...");
+//       console.log("Submission data:", submissionData);
+
+//     const response = await axios.post(
+//         `${API_BASE_URL}api/addstaff`,
+//         submissionData,
+//         {
+//           headers: {
+//             "Content-Type": "application/json",
+//             auth: AUTH_HEADER,
+//           },
+//         }
+//       );
+
+//       if (response.status === 200 || response.status === 201) {
+//         setFormSubmitted(true);
+//         alert("Staff registration successful!");
+//       }
+//     } catch (err) {
+//       console.error("Error submitting form:", err);
+
+//       // Handle specific server errors (like Duplicate Key 409) or generic network errors
+//       if (err.response) {
+//         console.error("Server Response:", err.response.data);
+//         const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
+//         alert(`Error: ${errorMsg}`);
+//       } else {
+//         alert("Network error or server not reachable.");
+//       }
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      alert("Please fill in all required fields correctly");
-      return;
-    }
+    if (!validateForm()) {
+      alert("Please fill in all required fields correctly");
+      return;
+    }
 
-    // NEW REQUIREMENT: At least 2 documents must be uploaded
-    if (documents.length < 2) {
-      alert("Please upload at least 2 documents (e.g., Aadhaar and Resume)");
-      return;
-    }
+    // NEW REQUIREMENT: At least 2 documents must be uploaded
+    if (documents.length < 2) {
+      alert("Please upload at least 2 documents (e.g., Aadhaar and Resume)");
+      return;
+    }
 
-    if (!isDeclared) {
-      alert("Please accept the terms and conditions");
-      return;
-    }
+    if (!isDeclared) {
+      alert("Please accept the terms and conditions");
+      return;
+    }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true);
 
-    try {
-      // Create a clean copy of the data to be submitted
-      const submissionData = { ...formData };
+    try {
+      // Create a clean copy of the data to be submitted
+      const submissionData = { ...formData };
 
-      Object.keys(submissionData).forEach(key => {
-        if (submissionData[key] === "" || submissionData[key] === null) {
-          delete submissionData[key];
-        }
-      });
+      Object.keys(submissionData).forEach(key => {
+        if (submissionData[key] === "" || submissionData[key] === null) {
+          delete submissionData[key];
+        }
+      });
 
+      // Parallelize uploads to Cloudinary to prevent mobile timeouts
+      const uploadPromises = [];
 
-      if (photo) {
-        console.log("Uploading photo...");
-        const photoUrl = await uploadToCloudinary(
-          photo,
-          "photos",
-          `${formData.firstname}_${formData.lastname}`
-        );
-        submissionData.photo = photoUrl;
-      }
+      if (photo) {
+        uploadPromises.push(
+          uploadToCloudinary(photo, "photos", `${formData.firstname}_${formData.lastname}`)
+            .then(url => { submissionData.photo = url; })
+        );
+      }
 
-      const documentUrls = [];
-      if (documents.length > 0) {
-          for (const doc of documents) {
-              console.log(`Uploading ${doc.name}...`);
-              const url = await uploadToCloudinary(
-                  doc.file,
-                  doc.type,
-                  `${formData.firstname}_${formData.lastname}_${doc.type}`
-              );
-              documentUrls.push({
-                  url: url,
-                  type: doc.type,
-                  name: doc.name,
-              });
-          }
-      }
+      if (documents.length > 0) {
+        const docPromises = documents.map(doc => 
+          uploadToCloudinary(doc.file, doc.type, `${formData.firstname}_${formData.lastname}_${doc.type}`)
+            .then(url => ({
+              url,
+              type: doc.type,
+              name: doc.name,
+            }))
+        );
+        uploadPromises.push(
+          Promise.all(docPromises).then(urls => { submissionData.documentsurl = urls; })
+        );
+      }
 
-      submissionData.documentsurl = documentUrls;
+      await Promise.all(uploadPromises);
 
-      console.log("All files uploaded, submitting form...");
-      console.log("Submission data:", submissionData);
+    const response = await axios.post(
+        `${API_BASE_URL}api/addstaff`,
+        submissionData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            auth: AUTH_HEADER,
+          },
+        }
+      );
 
-    const response = await axios.post(
-        `${API_BASE_URL}api/addstaff`,
-        submissionData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            auth: AUTH_HEADER,
-          },
-        }
-      );
+      if (response.status === 200 || response.status === 201) {
+        setFormSubmitted(true);
+        alert("Staff registration successful!");
+      }
+    } catch (err) {
+      console.error("Error submitting form:", err);
 
-      if (response.status === 200 || response.status === 201) {
-        setFormSubmitted(true);
-        alert("Staff registration successful!");
-      }
-    } catch (err) {
-      console.error("Error submitting form:", err);
-
-      // Handle specific server errors (like Duplicate Key 409) or generic network errors
-      if (err.response) {
-        console.error("Server Response:", err.response.data);
-        const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
-        alert(`Error: ${errorMsg}`);
-      } else {
-        alert("Network error or server not reachable.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+      if (err.response) {
+        console.error("Server Response:", err.response.data);
+        const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
+        alert(`Error: ${errorMsg}`);
+      } else {
+        alert("Network error or server not reachable.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const getLabel = (type) => {
     switch (type) {
       case "photo":
