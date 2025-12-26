@@ -13258,13 +13258,13 @@ export default function StaffRegistration() {
     uploadFormData.append("file", file);
     uploadFormData.append("upload_preset", "sspd-student-management");
     uploadFormData.append("folder", `staff_documents/${docType}`);
-    uploadFormData.append("public_id", `${customName}_${Date.now()}`); // Added timestamp to prevent Cloudinary overwrite/access issues
+    uploadFormData.append("public_id", `${customName}_${Date.now()}`);
 
     try {
       const res = await axios.post(
         "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload",
         uploadFormData,
-        { timeout: 60000 } // Extended timeout to 60s for mobile network reliability
+        { timeout: 60000 }
       );
       return res.data.secure_url;
     } catch (err) {
@@ -13346,12 +13346,6 @@ export default function StaffRegistration() {
       return;
     }
 
-    // NEW REQUIREMENT: At least 2 documents must be uploaded
-    if (documents.length < 2) {
-      alert("Please upload at least 2 documents (e.g., Aadhaar and Resume)");
-      return;
-    }
-
     if (!isDeclared) {
       alert("Please accept the terms and conditions");
       return;
@@ -13370,7 +13364,6 @@ export default function StaffRegistration() {
       });
 
       // FIRE ALL UPLOADS IN PARALLEL 🚀
-      // This prevents sequential timeouts on mobile browsers
       const uploadPromises = [];
 
       if (photo) {
@@ -13394,7 +13387,7 @@ export default function StaffRegistration() {
         );
       }
 
-      // Wait for all Cloudinary uploads to finish before hitting the backend
+      // Wait for Cloudinary uploads
       await Promise.all(uploadPromises);
 
       const response = await axios.post(
@@ -13405,7 +13398,7 @@ export default function StaffRegistration() {
             "Content-Type": "application/json",
             auth: AUTH_HEADER,
           },
-          timeout: 30000 // Give the backend 30s to process the complex registration
+          timeout: 30000 
         }
       );
 
@@ -13416,12 +13409,11 @@ export default function StaffRegistration() {
     } catch (err) {
       console.error("Error submitting form:", err);
 
-      // Improved Error Reporting
       if (err.response) {
         const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
         alert(`Server Error: ${errorMsg}`);
         
-        // If it's a duplicate key error, we should generate a NEW Staff ID for the next attempt
+        // CRITICAL FIX: If Duplicate key error happens, generate a NEW ID for the next click
         if (err.response.status === 409) {
            setFormData(prev => ({ ...prev, staffid: generateStaffId() }));
         }
