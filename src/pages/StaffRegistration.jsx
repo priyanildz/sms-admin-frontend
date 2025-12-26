@@ -11870,12 +11870,13 @@ export default function StaffRegistration() {
     uploadFormData.append("file", file);
     uploadFormData.append("upload_preset", "sspd-student-management");
     uploadFormData.append("folder", `staff_documents/${docType}`);
-    uploadFormData.append("public_id", customName);
+    uploadFormData.append("public_id", `${customName}_${Date.now()}`); // Added timestamp to prevent Cloudinary overwrite/access issues
 
     try {
       const res = await axios.post(
         "https://api.cloudinary.com/v1_1/dyloa2svi/auto/upload",
-        uploadFormData
+        uploadFormData,
+        { timeout: 60000 } // Extended timeout to 60s for mobile network reliability
       );
       return res.data.secure_url;
     } catch (err) {
@@ -11980,7 +11981,8 @@ export default function StaffRegistration() {
         }
       });
 
-      // Parallelize uploads to Cloudinary to prevent sequential timeouts on mobile
+      // FIRE ALL UPLOADS IN PARALLEL 🚀
+      // This prevents sequential timeouts on mobile browsers
       const uploadPromises = [];
 
       if (photo) {
@@ -12004,10 +12006,8 @@ export default function StaffRegistration() {
         );
       }
 
-      // Fire all uploads at once and wait for completion
+      // Wait for all Cloudinary uploads to finish before hitting the backend
       await Promise.all(uploadPromises);
-
-      console.log("All files uploaded, submitting form...");
 
       const response = await axios.post(
         `${API_BASE_URL}api/addstaff`,
@@ -12017,6 +12017,7 @@ export default function StaffRegistration() {
             "Content-Type": "application/json",
             auth: AUTH_HEADER,
           },
+          timeout: 30000 // Give the backend 30s to process the complex registration
         }
       );
 
@@ -12027,11 +12028,17 @@ export default function StaffRegistration() {
     } catch (err) {
       console.error("Error submitting form:", err);
 
-      // Handle specific server errors (like Duplicate Key 409) or generic network errors
+      // Improved Error Reporting
       if (err.response) {
-        console.error("Server Response:", err.response.data);
         const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
-        alert(`Error: ${errorMsg}`);
+        alert(`Server Error: ${errorMsg}`);
+        
+        // If it's a duplicate key error, we should generate a NEW Staff ID for the next attempt
+        if (err.response.status === 409) {
+           setFormData(prev => ({ ...prev, staffid: generateStaffId() }));
+        }
+      } else if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+        alert("Upload Timeout: Connection was slow. Please try again with a smaller photo or better network.");
       } else {
         alert("Network error or server not reachable.");
       }
