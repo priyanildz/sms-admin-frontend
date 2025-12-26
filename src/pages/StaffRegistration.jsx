@@ -11450,7 +11450,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import InputField from "../components/InputField";
@@ -11974,58 +11973,40 @@ export default function StaffRegistration() {
       // Create a clean copy of the data to be submitted
       const submissionData = { ...formData };
 
-      // Remove empty strings or null values to keep payload clean
       Object.keys(submissionData).forEach(key => {
         if (submissionData[key] === "" || submissionData[key] === null) {
           delete submissionData[key];
         }
       });
 
-      // --- OPTIMIZATION: PARALLEL UPLOADS ---
-      // We collect all Cloudinary upload tasks into an array to fire them all at once.
-      // This prevents the sequential timeout issue on mobile networks.
-      const uploadTasks = [];
+      // Step 1: Prepare all Upload Promises for Parallel Execution to prevent timeouts
+      const uploadPromises = [];
 
-      // 1. Task for Photo
       if (photo) {
-        console.log("Queueing photo upload...");
-        uploadTasks.push(
-          uploadToCloudinary(
-            photo,
-            "photos",
-            `${formData.firstname}_${formData.lastname}_photo`
-          ).then(url => { submissionData.photo = url; })
+        uploadPromises.push(
+          uploadToCloudinary(photo, "photos", `${formData.firstname}_${formData.lastname}`)
+            .then(url => { submissionData.photo = url; })
         );
       }
 
-      // 2. Tasks for Documents
-      const documentUrls = [];
       if (documents.length > 0) {
-        console.log(`Queueing ${documents.length} document uploads...`);
-        documents.forEach((doc) => {
-          uploadTasks.push(
-            uploadToCloudinary(
-              doc.file,
-              doc.type,
-              `${formData.firstname}_${formData.lastname}_${doc.type}_${Date.now()}`
-            ).then(url => {
-              documentUrls.push({
-                url: url,
-                type: doc.type,
-                name: doc.name,
-              });
-            })
-          );
-        });
+        const docPromises = documents.map(doc => 
+          uploadToCloudinary(doc.file, doc.type, `${formData.firstname}_${formData.lastname}_${doc.type}`)
+            .then(url => ({
+              url,
+              type: doc.type,
+              name: doc.name,
+            }))
+        );
+        uploadPromises.push(
+          Promise.all(docPromises).then(urls => { submissionData.documentsurl = urls; })
+        );
       }
 
-      // Execute all uploads simultaneously
-      await Promise.all(uploadTasks);
-      submissionData.documentsurl = documentUrls;
+      // Step 2: Fire all uploads at once
+      await Promise.all(uploadPromises);
 
-      console.log("All files uploaded successfully. Submitting form to backend...");
-
-      // Final API call to the server
+      // Step 3: Final Backend Submit
       const response = await axios.post(
         `${API_BASE_URL}api/addstaff`,
         submissionData,
@@ -12042,19 +12023,14 @@ export default function StaffRegistration() {
         alert("Staff registration successful!");
       }
     } catch (err) {
-      console.error("Error during submission:", err);
+      console.error("Error submitting form:", err);
 
-      // --- IMPROVED ERROR REPORTING ---
       if (err.response) {
-        // This catches the 409 Conflict (Duplicate Staff ID/Aadhar) 
-        // and displays the specific message from your backend.
-        const serverMsg = err.response.data.error || err.response.data.message || "Registration failed.";
-        alert(`Server Error: ${serverMsg}`);
-      } else if (err.request) {
-        // This catches network timeouts/drops
-        alert("Network error: The server took too long to respond or is unreachable. Please check your connection.");
+        console.error("Server Response:", err.response.data);
+        const errorMsg = err.response.data.error || err.response.data.message || "Registration failed.";
+        alert(`Error: ${errorMsg}`);
       } else {
-        alert(`Error: ${err.message}`);
+        alert("Network error or server not reachable.");
       }
     } finally {
       setIsSubmitting(false);
