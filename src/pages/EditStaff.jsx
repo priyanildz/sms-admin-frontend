@@ -2166,11 +2166,11 @@ const EditStaff = () => {
 
             setStaffData((prev) => ({
                 ...prev,
-                ...sanitizedData, // This spreads all fields including designation, dept, and transportstatus
+                ...sanitizedData,
                 dob: sanitizedData.dob ? sanitizedData.dob.split("T")[0] : "",
                 joiningdate: sanitizedData.joiningdate ? sanitizedData.joiningdate.split("T")[0] : "",
                 _id: sanitizedData._id || id,
-                // Explicit mapping for clarity and safety
+                // Explicitly mapping nested/merged fields to ensure visibility
                 designation: sanitizedData.designation || "",
                 dept: sanitizedData.dept || "",
                 position: sanitizedData.position || "",
