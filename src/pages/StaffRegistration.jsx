@@ -13405,7 +13405,7 @@ export default function StaffRegistration() {
             "Content-Type": "application/json",
             auth: AUTH_HEADER,
           },
-          timeout: 9000000 // Give the backend 30s to process the complex registration
+          timeout: 3000000 // Give the backend 30s to process the complex registration
         }
       );
 
