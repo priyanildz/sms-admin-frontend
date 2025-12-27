@@ -17,8 +17,8 @@ export default function Dashboard() {
   const cards = [
     { icon: faUserGraduate, title: "Student Management", link: "/students" },
     { icon: faChalkboardTeacher, title: "Staff Management", link: "/staff" },
-    { icon: faBook, title: "Classroom Management", link: "/classes" },
     { icon: faUniversity, title: "Academic Management", link: "/academics" },
+    { icon: faBook, title: "Classroom Management", link: "/classes" },
     { icon: faMoneyBillAlt, title: "Fees Management", link: "/fees" },
     { icon: faClipboardList, title: "Exam Management", link: "/exams" },
     { icon: faCalendarAlt, title: "Event Management", link: "/events" },

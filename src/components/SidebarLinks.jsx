@@ -37,8 +37,8 @@ import {
 export const mainLinks = [
   { to: "/students", icon: faUserGraduate, text: "Student Management" },
   { to: "/staff", icon: faUsers, text: "Staff Management" },
-  { to: "/classes", icon: faChalkboardTeacher, text: "Classroom Management" },
   { to: "/academics", icon: faBook, text: "Academic Management" },
+  { to: "/classes", icon: faChalkboardTeacher, text: "Classroom Management" },
   { to: "/fees", icon: faMoneyBillWave, text: "Fees Management" },
   { to: "/exams", icon: faClipboardList, text: "Exam Management" },
   { to: "/events", icon: faCalendarAlt, text: "Event Management" },

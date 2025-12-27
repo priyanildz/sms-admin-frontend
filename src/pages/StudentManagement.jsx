@@ -2156,8 +2156,8 @@ export default function StudentManagement() {
 
   const cards = [
     { title: "Total Students", count: totalStudents, color: "blue", key: "Total" },
-    { title: "New Admission", count: newAdmissions, color: "green", key: "New Admission" },
     { title: "LC Students", count: lcStudents, color: "red", key: "LC Students" },
+    { title: "New Admission", count: newAdmissions, color: "green", key: "New Admission" },
   ];
 
   const combinedAllStudents = [...activeStudents, ...lcList];

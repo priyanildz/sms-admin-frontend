@@ -2166,7 +2166,7 @@ export default function StudentAdmission() {
     
     // 1. Set submission state/UI feedback (if you had a dedicated status)
     // Here we'll use a local alert for status:
-    alert("Application valid. Starting file uploads...");
+    // alert("Application valid. Starting file uploads...");
 
     try {
         // 2. Upload Main Photo
