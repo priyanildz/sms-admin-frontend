@@ -1553,7 +1553,7 @@ export default function StaffProfile({
     };
 
     const SectionTitle = ({ title }) => (
-        <div className="-mx-8 bg-blue-500 text-white px-6 py-2 rounded-t mb-6 mt-8 first:mt-0">
+        <div className="-mx-8 -mt-6  bg-blue-500 text-white px-6 py-2 rounded-t mb-6 mt-8 first:mt-0">
             <h4 className="text-lg font-semibold uppercase tracking-wider">{title}</h4>
         </div>
     );
