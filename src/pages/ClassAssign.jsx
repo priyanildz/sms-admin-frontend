@@ -829,6 +829,248 @@
 
 
 
+// import React, { useState, useEffect, useMemo } from "react";
+// import MainLayout from "../layout/MainLayout";
+// import { API_BASE_URL } from '../config'; 
+
+// // Updated Standards per request
+// const STANDARDS = ["Nursery", "Junior", "Senior", ...Array.from({ length: 10 }, (_, i) => String(i + 1))];
+// const DIVISIONS = ["A", "B", "C", "D", "E"];
+// const AUTH_TOKEN = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU="; 
+
+// // =========================================================================
+// // ClassAssignmentFormModal Component
+// // =========================================================================
+// const ClassAssignmentFormModal = ({ staffs, staffError, API_BASE_URL, AUTH_TOKEN, assignments, fetchAssignments, closeModal, editData }) => {
+//     const [formData, setFormData] = useState({
+//         standard: editData?.standard || "",
+//         division: editData?.division || "",
+//         staffid: editData?.staffid || "",
+//         studentcount: editData?.studentcount || 0, 
+//         student_ids: editData?.student_ids || {},
+//     });
+//     const [message, setMessage] = useState("");
+//     const [isError, setIsError] = useState(false);
+//     const [loading, setLoading] = useState(false);
+
+//     // Conflict check logic (only for NEW assignments)
+//     const isClassConflict = useMemo(() => {
+//         if (!formData.standard || !formData.division || editData) return false;
+//         return assignments.some(assignment => 
+//             assignment.standard === formData.standard && 
+//             assignment.division === formData.division
+//         );
+//     }, [formData.standard, formData.division, assignments, editData]);
+    
+//     const isTeacherConflict = useMemo(() => {
+//         if (!formData.staffid || editData) return false;
+//         return assignments.some(assignment => 
+//             assignment.staffid === formData.staffid
+//         );
+//     }, [formData.staffid, assignments, editData]);
+
+//     const handleChange = (e) => {
+//         const { name, value } = e.target;
+//         setFormData((prev) => ({ ...prev, [name]: value }));
+//         setMessage(""); 
+//         setIsError(false);
+//     };
+
+//     const handleSubmit = async (e) => {
+//         e.preventDefault();
+//         if (isClassConflict || isTeacherConflict) return;
+
+//         setMessage("");
+//         setIsError(false);
+//         setLoading(true);
+
+//         try {
+//             const method = editData ? "PUT" : "POST";
+//             const endpoint = editData ? `api/classrooms/${editData._id}` : `api/add-classroom`;
+
+//             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+//                 method: method,
+//                 headers: {
+//                     "Content-Type": "application/json",
+//                     "auth": AUTH_TOKEN,
+//                 },
+//                 body: JSON.stringify(formData),
+//             });
+
+//             const data = await response.json();
+//             if (!response.ok) throw new Error(data.message || `Operation failed.`);
+
+//             setMessage(editData ? "Updated successfully!" : "Assigned successfully!");
+//             await fetchAssignments();
+//             setTimeout(closeModal, 1500);
+//         } catch (error) {
+//             setIsError(true);
+//             setMessage(error.message);
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+    
+//     // Filtering teachers: only available teachers OR the current teacher if editing
+//     const availableStaffs = useMemo(() => {
+//         return staffs.filter(staff => {
+//             const isAlreadyAssigned = assignments.some(a => a.staffid === staff._id);
+//             if (editData && staff._id === editData.staffid) return true;
+//             return !isAlreadyAssigned;
+//         });
+//     }, [staffs, assignments, editData]);
+
+//     return (
+//         <div className="fixed inset-0 flex items-center justify-center z-[500]" style={{ backgroundColor: 'rgba(50, 50, 50, 0.5)' }}>
+//             <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4">
+//                 <div className="flex justify-between items-center mb-6 border-b pb-3">
+//                     <h2 className="text-xl font-bold text-gray-800">{editData ? "Edit Classroom" : "Assign New Classroom"}</h2>
+//                     <button onClick={closeModal} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+//                 </div>
+
+//                 <form onSubmit={handleSubmit} className="space-y-4">
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">Standard</label>
+//                         <select name="standard" value={formData.standard} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+//                             <option value="" disabled>Select Standard</option>
+//                             {STANDARDS.map((std) => (<option key={std} value={std}>{std}</option>))}
+//                         </select>
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">Division</label>
+//                         <select name="division" value={formData.division} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+//                             <option value="" disabled>Select Division</option>
+//                             {DIVISIONS.map((div) => (<option key={div} value={div}>{div}</option>))}
+//                         </select>
+//                         {isClassConflict && <p className="mt-2 text-sm text-red-600 font-medium">Standard {formData.standard} Division {formData.division} is already assigned!</p>}
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-medium text-gray-700">Class Teacher</label>
+//                         <select name="staffid" value={formData.staffid} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" disabled={staffError || staffs.length === 0}>
+//                             <option value="">{staffError ? "Error Loading Staff" : staffs.length === 0 ? "No Staff Available" : "Select Class Teacher"}</option>
+//                             {availableStaffs.map(staff => (
+//                                 <option key={staff._id} value={staff._id}>{staff.firstname} {staff.lastname}</option>
+//                             ))}
+//                         </select>
+//                     </div>
+
+//                     <button type="submit" disabled={loading || isClassConflict || !formData.staffid} className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${loading || isClassConflict ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}>
+//                         {loading ? 'Submitting...' : editData ? 'Update Classroom' : 'Assign Classroom'}
+//                     </button>
+//                 </form>
+//                 {message && <div className={`mt-4 p-3 rounded-md ${isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>{message}</div>}
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default function ClassAssign() {
+//     const [isModalOpen, setIsModalOpen] = useState(false);
+//     const [editingAssignment, setEditingAssignment] = useState(null);
+//     const [staffs, setStaffs] = useState([]); 
+//     const [staffLoading, setStaffLoading] = useState(true);
+//     const [staffError, setStaffError] = useState(null);
+//     const [assignments, setAssignments] = useState([]); 
+//     const [assignmentsLoading, setAssignmentsLoading] = useState(true);
+//     const [assignmentsError, setAssignmentsError] = useState(null);
+
+//     const getStaffName = (staffid) => {
+//         const staff = staffs.find(s => s._id === staffid);
+//         return staff ? `${staff.firstname} ${staff.lastname}` : 'N/A';
+//     };
+    
+//     const fetchAssignments = async () => {
+//         try {
+//             setAssignmentsLoading(true);
+//             const response = await fetch(`${API_BASE_URL}api/classrooms`, { headers: { auth: AUTH_TOKEN } });
+//             if (!response.ok) throw new Error(`Failed to fetch assignments.`);
+//             const data = await response.json();
+//             setAssignments(data);
+//         } catch (err) { setAssignmentsError(err.message); } 
+//         finally { setAssignmentsLoading(false); }
+//     };
+
+//     const fetchStaffs = async () => {
+//         try {
+//             setStaffLoading(true);
+//             const response = await fetch(`${API_BASE_URL}api/staff`, { headers: { auth: AUTH_TOKEN } });
+//             if (!response.ok) throw new Error(`Failed to fetch staff.`);
+//             const data = await response.json();
+//             setStaffs(data);
+//         } catch (err) { setStaffError(err.message); } 
+//         finally { setStaffLoading(false); }
+//     };
+
+//     useEffect(() => { fetchStaffs(); fetchAssignments(); }, []);
+
+//     const handleDelete = async (id) => {
+//         if (!window.confirm("Are you sure?")) return;
+//         try {
+//             const response = await fetch(`${API_BASE_URL}api/classrooms/${id}`, { method: 'DELETE', headers: { auth: AUTH_TOKEN } });
+//             if (!response.ok) throw new Error("Delete failed.");
+//             fetchAssignments();
+//         } catch (error) { alert(error.message); }
+//     };
+
+//     if (staffLoading && assignmentsLoading) return <MainLayout><div className="text-center p-6">Loading...</div></MainLayout>;
+
+//     return (
+//         <MainLayout>
+//             <div className="bg-white rounded-2xl shadow p-6">
+//                 <div className="flex justify-between items-center mb-4 border-b pb-4">
+//                     <h2 className="text-2xl font-bold text-gray-800">Classrooms Assigned</h2>
+//                     <button onClick={() => { setEditingAssignment(null); setIsModalOpen(true); }} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Assign Class</button>
+//                 </div>
+
+//                 <div className="overflow-x-auto border border-gray-300 rounded-lg"> 
+//                     <table className="min-w-full table-collapse text-sm"> 
+//                         <thead className="bg-blue-100 text-gray-800 font-semibold">
+//                             <tr>
+//                                 <th className="px-6 py-3 text-left border border-gray-300">Standard</th>
+//                                 <th className="px-6 py-3 text-left border border-gray-300">Division</th>
+//                                 <th className="px-6 py-3 text-left border border-gray-300">Class Teacher</th>
+//                                 <th className="px-6 py-3 text-left border border-gray-300">Student Count</th>
+//                                 <th className="px-6 py-3 text-left border border-gray-300">Actions</th>
+//                             </tr>
+//                         </thead>
+//                         <tbody className="bg-white divide-y divide-gray-200">
+//                             {assignments.map((assignment) => (
+//                                 <tr key={assignment._id} className="hover:bg-blue-50">
+//                                     <td className="px-6 py-4 border border-gray-300">{assignment.standard}</td>
+//                                     <td className="px-6 py-4 border border-gray-300">{assignment.division}</td>
+//                                     <td className="px-6 py-4 border border-gray-300"><span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">{getStaffName(assignment.staffid)}</span></td>
+//                                     <td className="px-6 py-4 border border-gray-300">{assignment.studentcount}</td>
+//                                     <td className="px-6 py-4 border border-gray-300">
+//                                         <div className="flex space-x-2">
+//                                             <button onClick={() => { setEditingAssignment(assignment); setIsModalOpen(true); }} className="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">Edit</button>
+//                                             <button onClick={() => handleDelete(assignment._id)} className="text-red-600 bg-red-50 px-2 py-1 rounded-md">Delete</button>
+//                                         </div>
+//                                     </td>
+//                                 </tr>
+//                             ))}
+//                         </tbody>
+//                     </table>
+//                 </div>
+//             </div>
+//             {isModalOpen && <ClassAssignmentFormModal staffs={staffs} staffError={staffError} API_BASE_URL={API_BASE_URL} AUTH_TOKEN={AUTH_TOKEN} assignments={assignments} fetchAssignments={fetchAssignments} closeModal={() => setIsModalOpen(false)} editData={editingAssignment} />}
+//         </MainLayout>
+//     );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layout/MainLayout";
 import { API_BASE_URL } from '../config'; 
@@ -853,7 +1095,6 @@ const ClassAssignmentFormModal = ({ staffs, staffError, API_BASE_URL, AUTH_TOKEN
     const [isError, setIsError] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Conflict check logic (only for NEW assignments)
     const isClassConflict = useMemo(() => {
         if (!formData.standard || !formData.division || editData) return false;
         return assignments.some(assignment => 
@@ -911,7 +1152,6 @@ const ClassAssignmentFormModal = ({ staffs, staffError, API_BASE_URL, AUTH_TOKEN
         }
     };
     
-    // Filtering teachers: only available teachers OR the current teacher if editing
     const availableStaffs = useMemo(() => {
         return staffs.filter(staff => {
             const isAlreadyAssigned = assignments.some(a => a.staffid === staff._id);
@@ -941,7 +1181,9 @@ const ClassAssignmentFormModal = ({ staffs, staffError, API_BASE_URL, AUTH_TOKEN
                         <label className="block text-sm font-medium text-gray-700">Division</label>
                         <select name="division" value={formData.division} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="" disabled>Select Division</option>
-                            {DIVISIONS.map((div) => (<option key={div} value={div}>{div}</option>))}
+                            {DIVISIONS.map((div) => (
+                                <option key={div} value={div}>{div}</option>
+                            ))}
                         </select>
                         {isClassConflict && <p className="mt-2 text-sm text-red-600 font-medium">Standard {formData.standard} Division {formData.division} is already assigned!</p>}
                     </div>
@@ -975,6 +1217,10 @@ export default function ClassAssign() {
     const [assignments, setAssignments] = useState([]); 
     const [assignmentsLoading, setAssignmentsLoading] = useState(true);
     const [assignmentsError, setAssignmentsError] = useState(null);
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [standardFilter, setStandardFilter] = useState("");
+    const [divisionFilter, setDivisionFilter] = useState("");
 
     const getStaffName = (staffid) => {
         const staff = staffs.find(s => s._id === staffid);
@@ -1014,14 +1260,73 @@ export default function ClassAssign() {
         } catch (error) { alert(error.message); }
     };
 
+    const filteredAssignments = useMemo(() => {
+        return assignments.filter((assignment) => {
+            const staffName = getStaffName(assignment.staffid).toLowerCase();
+            const matchesSearch = staffName.includes(searchQuery.toLowerCase()) || 
+                                  assignment.standard.toString().toLowerCase().includes(searchQuery.toLowerCase());
+            
+            const matchesStandard = standardFilter === "" || assignment.standard === standardFilter;
+            const matchesDivision = divisionFilter === "" || assignment.division === divisionFilter;
+
+            return matchesSearch && matchesStandard && matchesDivision;
+        });
+    }, [assignments, searchQuery, standardFilter, divisionFilter, staffs]);
+
     if (staffLoading && assignmentsLoading) return <MainLayout><div className="text-center p-6">Loading...</div></MainLayout>;
 
     return (
         <MainLayout>
             <div className="bg-white rounded-2xl shadow p-6">
-                <div className="flex justify-between items-center mb-4 border-b pb-4">
-                    <h2 className="text-2xl font-bold text-gray-800">Classrooms Assigned</h2>
-                    <button onClick={() => { setEditingAssignment(null); setIsModalOpen(true); }} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Assign Class</button>
+                
+                {/* Search (Left) and Filters (Right) Row */}
+                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div className="w-full md:w-auto">
+                        <input
+                            type="text"
+                            placeholder="Search teacher..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="border border-gray-300 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full md:w-80"
+                        />
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <select
+                            value={standardFilter}
+                            onChange={(e) => setStandardFilter(e.target.value)}
+                            className="border border-gray-300 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full md:w-32"
+                        >
+                            <option value="">Standard</option>
+                            {STANDARDS.map((std) => (
+                                <option key={std} value={std}>{std}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={divisionFilter}
+                            onChange={(e) => setDivisionFilter(e.target.value)}
+                            className="border border-gray-300 rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full md:w-32"
+                        >
+                            <option value="">Division</option>
+                            {DIVISIONS.map((div) => (
+                                <option key={div} value={div}>{div}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Assign Class Button Row */}
+                <div className="flex justify-end mb-4">
+                    <button 
+                        onClick={() => { setEditingAssignment(null); setIsModalOpen(true); }} 
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                    >
+                        Assign Class
+                    </button>
+                </div>
+
+                {/* Classrooms Assigned (Middle Row - Below the button line) */}
+                <div className="flex justify-center mb-6">
+                   <h2 className="text-2xl font-bold text-gray-800">Classrooms Assigned</h2>
                 </div>
 
                 <div className="overflow-x-auto border border-gray-300 rounded-lg"> 
@@ -1036,7 +1341,7 @@ export default function ClassAssign() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {assignments.map((assignment) => (
+                            {filteredAssignments.map((assignment) => (
                                 <tr key={assignment._id} className="hover:bg-blue-50">
                                     <td className="px-6 py-4 border border-gray-300">{assignment.standard}</td>
                                     <td className="px-6 py-4 border border-gray-300">{assignment.division}</td>
@@ -1050,6 +1355,11 @@ export default function ClassAssign() {
                                     </td>
                                 </tr>
                             ))}
+                            {filteredAssignments.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-4 text-center text-gray-500 italic">No matching records found</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
