@@ -324,7 +324,7 @@ export default function StaffTimetable() {
   const [selectedTimetableInfo, setSelectedTimetableInfo] = useState(null);
   const [retry, setRetry] = useState(0);
 
-  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const AUTH_HEADER = `ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=`;
 
   useEffect(() => {
@@ -550,7 +550,7 @@ export default function StaffTimetable() {
                     transform: "translate(-50%, -50%)",
                     width: "95%",
                     maxWidth: "1200px",
-                    maxHeight: "90vh",
+                    maxHeight: "100vh",
                     overflow: "hidden",
                     padding: "0",
                     borderRadius: "12px",
