@@ -2921,23 +2921,40 @@ import MainLayout from "../layout/MainLayout";
 import SelectField from "../components/SelectField"; 
 import { API_BASE_URL } from '../config'; 
 
+// const FIXED_PERIOD_STRUCTURE = [
+//   { num: 1, time: "07:00-07:37", type: "Period", isBreak: false },
+//   { num: null, time: "07:37-07:42", type: "Break", isBreak: true },
+//   { num: 2, time: "07:42-08:19", type: "Period", isBreak: false },
+//   { num: null, time: "08:19-08:24", type: "Break", isBreak: true },
+//   { num: 3, time: "08:24-09:01", type: "Period", isBreak: false },
+//   { num: null, time: "09:01-09:06", type: "Break", isBreak: true },
+//   { num: 4, time: "09:06-09:43", type: "Period", isBreak: false },
+//   { num: null, time: "09:43-10:13", type: "Lunch / Recess", isBreak: true }, 
+//   { num: 5, time: "10:13-10:50", type: "Period", isBreak: false },
+//   { num: null, time: "10:50-10:55", type: "Break", isBreak: true }, 
+//   { num: 6, time: "10:55-11:32", type: "Period", isBreak: false },
+//   { num: null, time: "11:32-11:37", type: "Break", isBreak: true }, 
+//   { num: 7, time: "11:37-12:14", type: "Period", isBreak: false },
+//   { num: null, time: "12:14-12:19", type: "Break", isBreak: true }, 
+//   { num: 8, time: "12:19-12:55", type: "Period", isBreak: false },
+// ];
+
 const FIXED_PERIOD_STRUCTURE = [
-  { num: 1, time: "07:00-07:37", type: "Period", isBreak: false },
-  { num: null, time: "07:37-07:42", type: "Break", isBreak: true },
-  { num: 2, time: "07:42-08:19", type: "Period", isBreak: false },
-  { num: null, time: "08:19-08:24", type: "Break", isBreak: true },
-  { num: 3, time: "08:24-09:01", type: "Period", isBreak: false },
-  { num: null, time: "09:01-09:06", type: "Break", isBreak: true },
-  { num: 4, time: "09:06-09:43", type: "Period", isBreak: false },
-  { num: null, time: "09:43-10:13", type: "Lunch / Recess", isBreak: true }, 
-  { num: 5, time: "10:13-10:50", type: "Period", isBreak: false },
-  { num: null, time: "10:50-10:55", type: "Break", isBreak: true }, 
-  { num: 6, time: "10:55-11:32", type: "Period", isBreak: false },
-  { num: null, time: "11:32-11:37", type: "Break", isBreak: true }, 
-  { num: 7, time: "11:37-12:14", type: "Period", isBreak: false },
-  { num: null, time: "12:14-12:19", type: "Break", isBreak: true }, 
-  { num: 8, time: "12:19-12:55", type: "Period", isBreak: false },
+  { num: 1, time: "07:00-07:55", type: "Period", isBreak: false },
+  { num: null, time: "07:55-08:00", type: "Break", isBreak: true },
+  { num: 2, time: "08:00-08:40", type: "Period", isBreak: false },
+  { num: null, time: "08:40-08:45", type: "Break", isBreak: true },
+  { num: 3, time: "08:45-09:25", type: "Period", isBreak: false },
+  { num: null, time: "09:25-09:30", type: "Break", isBreak: true },
+  { num: 4, time: "09:30-10:10", type: "Period", isBreak: false },
+  { num: null, time: "10:10-10:40", type: "Lunch / Recess", isBreak: true }, 
+  { num: 5, time: "10:40-11:20", type: "Period", isBreak: false },
+  { num: null, time: "11:20-11:25", type: "Break", isBreak: true }, 
+  { num: 6, time: "11:25-12:05", type: "Period", isBreak: false },
+  { num: null, time: "12:05-12:10", type: "Break", isBreak: true }, 
+  { num: 7, time: "12:10-01:00", type: "Period", isBreak: false },
 ];
+
 
 const HOLIDAYS = [
   { date: '2025-01-26', name: 'Republic Day' },
@@ -2949,6 +2966,9 @@ const HOLIDAYS = [
   { date: '2025-10-29', name: 'Diwali Holiday' }, 
   { date: '2025-10-30', name: 'Diwali Holiday' },
   { date: '2025-12-25', name: 'Christmas Day' },
+  { date: '2026-01-26', name: 'Republic Day' },
+  { date: '2026-08-15', name: 'Independence Day' },
+  { date: '2026-10-02', name: 'Gandhi Jayanti' }
 ];
 
 const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=';
