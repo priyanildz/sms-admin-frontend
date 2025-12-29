@@ -48,7 +48,7 @@ export const mainLinks = [
 
 // Edit Student Links for Sidebar
 export const editStudentLinks = [
-  { id: "profile", text: "Profile OvervHGJHGJGiew", icon: faUser },
+  { id: "profile", text: "Profile Overview", icon: faUser },
   { id: "academic", text: "Academic Management", icon: faBookOpen },
   { id: "fees", text: "Fees Management", icon: faMoneyBillWave },
   { id: "events", text: "Events & Activities", icon: faCalendarAlt },
