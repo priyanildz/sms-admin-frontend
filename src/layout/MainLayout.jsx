@@ -519,7 +519,6 @@
   
 //   return "Unknown Page";
 // }
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
@@ -532,7 +531,8 @@ import {
   feesLinks,
   profileLinks,
   examLinks,
-  editStudentLinks
+  editStudentLinks,
+  editStaffLinks
 } from "../components/SidebarLinks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from "../assets/logo.jpeg";
@@ -564,6 +564,7 @@ export default function MainLayout({ children, activeSection, onSectionChange })
 
   const getSidebarLinks = () => {
     if (currentRoute.includes("/students/edit-student/")) return editStudentLinks;
+    if (currentRoute.includes("/edit-staff/")) return editStaffLinks;
     if (currentRoute.startsWith("/staff")) return staffLinks;
     if (currentRoute.startsWith("/classes")) return classroomLinks;
     if (currentRoute.startsWith("/academics")) return academicLinks;
