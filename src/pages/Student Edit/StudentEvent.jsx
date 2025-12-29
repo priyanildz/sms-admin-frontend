@@ -145,7 +145,7 @@ export default function EventsActivities({ student }) {
     }, []); // Empty dependency array means this runs only once on mount
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="min-h-screen">
             <div className="max-w-4xl mx-auto">
                 {/* Title */}
                 <h1 className="text-2xl font-bold text-center mb-8 text-gray-800">

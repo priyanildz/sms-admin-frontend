@@ -54,7 +54,7 @@ export const editStudentLinks = [
   { id: "events", text: "Events & Activities", icon: faCalendarAlt },
   { id: "transport", text: "Transport Management", icon: faBus },
   { id: "history", text: "History", icon: faClock },
-  { id: "dashboard", text: "Back to Dashboard", icon: faArrowLeft, isNavigation: true },
+  // { id: "dashboard", text: "Back to Dashboard", icon: faArrowLeft, isNavigation: true },
 ];
 
 // Staff Links for Sidebar

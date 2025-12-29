@@ -1095,31 +1095,341 @@
 
 
 
+// import React, { useState, useEffect } from "react";
+// import { useNavigate, useParams, useLocation } from "react-router-dom"; 
+// import axios from "axios"; 
+// import {
+//   User,
+//   BookOpen,
+//   DollarSign,
+//   Calendar,
+//   Bus,
+//   Clock,
+//   ChevronRight,
+//   Menu,
+//   X,
+//   ArrowLeft,
+// } from "lucide-react";
+
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import {
+//   faRightFromBracket,
+//   faCircleUser,
+//   faBell,
+//   faShareNodes,
+//   faBars,
+//   faFileExport,
+// } from "@fortawesome/free-solid-svg-icons";
+
+// // Import your components
+// import StudentProfile from "./Student Edit/StudentProfile";
+// import StudentAcademic from "./Student Edit/StudentAcademic";
+// import FeesManagement from "./Student Edit/StudentFees";
+// import EventsActivities from "./Student Edit/StudentEvent";
+// import TransportManagement from "./Student Edit/StudentTransport";
+// import History from "./Student Edit/StudentHistory";
+
+// import { API_BASE_URL } from '../config'; 
+// import { editStudentLinks } from "../components/SidebarLinks"; // Import the shared links
+
+// const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
+
+// const EditStudent = () => {
+//   const [activeSection, setActiveSection] = useState("profile");
+//   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+//   const { id } = useParams(); 
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const queryParams = new URLSearchParams(location.search);
+//   const isViewMode = queryParams.get('mode') === 'view';
+
+//   const [studentData, setStudentData] = useState(null);
+//   const [isLoadingStudent, setIsLoadingStudent] = useState(true); 
+
+//   const fetchStudentData = async () => {
+//     if (!id) {
+//       setIsLoadingStudent(false);
+//       return;
+//     }
+//     try {
+//       const response = await axios.post(
+//         `${API_BASE_URL}api/student-by-id`,
+//         { id: id },
+//         { headers: { auth: AUTH_HEADER } }
+//       );
+//       if (response.status === 200) {
+//         const data = response.data;
+//         const studentInfo = {
+//           _id: data._id,
+//           name: `${data.firstname || ""} ${data.lastname || ""}`.trim(),
+//           std: data.admission?.admissionstd,
+//           div: data.admission?.admissiondivision,
+//           transport: data.transport || {}, 
+//           academicHistory: data.academicHistory || null, 
+//         };
+//         setStudentData(studentInfo);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching student data:", error);
+//     } finally {
+//       setIsLoadingStudent(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     setIsLoadingStudent(true);
+//     fetchStudentData();
+//   }, [id]);
+
+//   // Mapping shared SidebarLinks to actual Components
+//   const sectionComponents = {
+//     profile: StudentProfile,
+//     academic: StudentAcademic,
+//     fees: FeesManagement,
+//     events: EventsActivities,
+//     transport: TransportManagement,
+//     history: History,
+//   };
+
+//   const handleMenuClick = (item) => {
+//     if (item.isNavigation || item.id === "dashboard") {
+//       navigate("/students");
+//     } else {
+//       setActiveSection(item.id);
+//       if (window.innerWidth < 1024) {
+//         setIsSidebarOpen(false);
+//       }
+//     }
+//   };
+
+//   const getCurrentComponent = () => {
+//     if (isLoadingStudent) return <div className="text-center p-10">Loading...</div>;
+    
+//     const Component = sectionComponents[activeSection] || StudentProfile;
+    
+//     return (
+//       <Component
+//         studentid={id}
+//         student={studentData}
+//         refreshStudentData={fetchStudentData}
+//         isViewMode={isViewMode}
+//       />
+//     );
+//   };
+
+//   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       <div className="flex flex-wrap justify-end items-center gap-4 text-black bg-blue-400 gap-y-4 p-5">
+//         <button onClick={toggleSidebar} className="lg:hidden text-white">
+//           <Menu className="w-6 h-6" />
+//         </button>
+//         <div className="flex items-center gap-4">
+//           <FontAwesomeIcon icon={faBell} className="text-lg hover:text-white cursor-pointer" />
+//           <FontAwesomeIcon icon={faShareNodes} className="text-lg hover:text-white cursor-pointer" />
+//           <FontAwesomeIcon icon={faFileExport} className="text-lg hover:text-white cursor-pointer" />
+//           <FontAwesomeIcon icon={faCircleUser} className="text-xl hover:text-white cursor-pointer" />
+//           <button onClick={() => navigate("/")} className="text-red-600">
+//             <FontAwesomeIcon icon={faRightFromBracket} className="text-lg" />
+//           </button>
+//         </div>
+//       </div>
+
+//       <div className="flex flex-col lg:flex-row relative">
+//         {isSidebarOpen && (
+//           <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
+//         )}
+
+//         <div className={`fixed lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-30 w-80 bg-white shadow-lg h-screen lg:h-auto ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+//           <div className="p-6 border-b border-gray-200">
+//             <div className="flex items-center space-x-3">
+//               <div className="w-12 h-12 bg-blue-400 rounded-lg flex items-center justify-center">
+//                 <img src="/src/assets/logo.jpeg" alt="Logo" />
+//               </div>
+//               <h1 className="text-2xl font-bold text-blue-400">SSPD SMS</h1>
+//             </div>
+//           </div>
+
+//           <nav className="p-4 space-y-2">
+//             {editStudentLinks.map((item) => {
+//               const Icon = item.icon; // This works for FontAwesome or Lucide depending on SidebarLinks.js
+//               return (
+//                 <button
+//                   key={item.id}
+//                   onClick={() => handleMenuClick(item)}
+//                   className={`w-full flex items-center justify-between p-3 text-left rounded-lg transition-colors duration-200 ${
+//                     activeSection === item.id ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50"
+//                   }`}
+//                 >
+//                   <div className="flex items-center space-x-3">
+//                     {/* Render FontAwesomeIcon since SidebarLinks.js uses them */}
+//                     <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+//                     <span className="font-medium">{item.text}</span>
+//                   </div>
+//                   <ChevronRight className={`w-4 h-4 ${activeSection === item.id ? "text-blue-600" : "text-gray-400"}`} />
+//                 </button>
+//               );
+//             })}
+//           </nav>
+//         </div>
+
+//         <div className="flex-1 p-4 lg:p-8">
+//           {getCurrentComponent()}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default EditStudent;
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { useNavigate, useParams, useLocation } from "react-router-dom"; 
+// import axios from "axios"; 
+// import MainLayout from "../layout/MainLayout"; // Import MainLayout
+
+// // Import your components
+// import StudentProfile from "./Student Edit/StudentProfile";
+// import StudentAcademic from "./Student Edit/StudentAcademic";
+// import FeesManagement from "./Student Edit/StudentFees";
+// import EventsActivities from "./Student Edit/StudentEvent";
+// import TransportManagement from "./Student Edit/StudentTransport";
+// import History from "./Student Edit/StudentHistory";
+
+// import { API_BASE_URL } from '../config'; 
+// import { editStudentLinks } from "../components/SidebarLinks";
+
+// const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
+
+// const EditStudent = () => {
+//   const [activeSection, setActiveSection] = useState("profile");
+//   const { id } = useParams(); 
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const queryParams = new URLSearchParams(location.search);
+//   const isViewMode = queryParams.get('mode') === 'view';
+
+//   const [studentData, setStudentData] = useState(null);
+//   const [isLoadingStudent, setIsLoadingStudent] = useState(true); 
+
+//   const fetchStudentData = async () => {
+//     if (!id) {
+//       setIsLoadingStudent(false);
+//       return;
+//     }
+//     try {
+//       const response = await axios.post(
+//         `${API_BASE_URL}api/student-by-id`,
+//         { id: id },
+//         { headers: { auth: AUTH_HEADER } }
+//       );
+//       if (response.status === 200) {
+//         const data = response.data;
+//         const studentInfo = {
+//           _id: data._id,
+//           name: `${data.firstname || ""} ${data.lastname || ""}`.trim(),
+//           std: data.admission?.admissionstd,
+//           div: data.admission?.admissiondivision,
+//           transport: data.transport || {}, 
+//           academicHistory: data.academicHistory || null, 
+//         };
+//         setStudentData(studentInfo);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching student data:", error);
+//     } finally {
+//       setIsLoadingStudent(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     setIsLoadingStudent(true);
+//     fetchStudentData();
+//   }, [id]);
+
+//   // Mapping shared SidebarLinks to actual Components
+//   const sectionComponents = {
+//     profile: StudentProfile,
+//     academic: StudentAcademic,
+//     fees: FeesManagement,
+//     events: EventsActivities,
+//     transport: TransportManagement,
+//     history: History,
+//   };
+
+//   // Logic to sync activeSection with the URL or clicks
+//   // Since MainLayout uses <Link to={link.to}>, but EditStudent uses internal state,
+//   // we need to ensure clicks on the sidebar update the local state.
+  
+//   // Note: Your MainLayout uses 'to' for navigation. 
+//   // If you want the sidebar buttons to switch components WITHOUT refreshing the page, 
+//   // we keep the activeSection state logic.
+  
+//   useEffect(() => {
+//       // You can add logic here to detect which section is active based on 
+//       // some state or sub-route if needed.
+//   }, [location]);
+
+//   const getCurrentComponent = () => {
+//     if (isLoadingStudent) return <div className="text-center p-10">Loading...</div>;
+    
+//     const Component = sectionComponents[activeSection] || StudentProfile;
+    
+//     return (
+//       <Component
+//         studentid={id}
+//         student={studentData}
+//         refreshStudentData={fetchStudentData}
+//         isViewMode={isViewMode}
+//       />
+//     );
+//   };
+
+//   return (
+//     <MainLayout>
+//       <div className="flex flex-col lg:flex-row gap-8">
+//         {/* Internal Navigation for Edit Sections */}
+//         {/* We keep this visible if you want the user to click between Profile, Academic, etc. */}
+//         <div className="flex-1">
+//           <div className="bg-white rounded-2xl shadow p-6">
+//              {/* The sidebar is now provided by MainLayout. 
+//                  To make the MainLayout sidebar items functional for state switching,
+//                  we ensure the handleMenuClick equivalent logic is handled.
+//              */}
+//              <div className="mb-6 border-b pb-4 flex gap-4 overflow-x-auto">
+//                 {editStudentLinks.filter(l => !l.isNavigation).map((link) => (
+//                     <button
+//                         key={link.id}
+//                         onClick={() => setActiveSection(link.id)}
+//                         className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+//                             activeSection === link.id 
+//                             ? "bg-blue-100 text-blue-600 font-bold" 
+//                             : "text-gray-600 hover:bg-gray-100"
+//                         }`}
+//                     >
+//                         {link.text.replace("OvervHGJHGJGiew", "Overview")}
+//                     </button>
+//                 ))}
+//              </div>
+             
+//              {getCurrentComponent()}
+//           </div>
+//         </div>
+//       </div>
+//     </MainLayout>
+//   );
+// };
+
+// export default EditStudent;
+
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom"; 
 import axios from "axios"; 
-import {
-  User,
-  BookOpen,
-  DollarSign,
-  Calendar,
-  Bus,
-  Clock,
-  ChevronRight,
-  Menu,
-  X,
-  ArrowLeft,
-} from "lucide-react";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faRightFromBracket,
-  faCircleUser,
-  faBell,
-  faShareNodes,
-  faBars,
-  faFileExport,
-} from "@fortawesome/free-solid-svg-icons";
+import MainLayout from "../layout/MainLayout"; // Imported MainLayout
 
 // Import your components
 import StudentProfile from "./Student Edit/StudentProfile";
@@ -1130,13 +1440,11 @@ import TransportManagement from "./Student Edit/StudentTransport";
 import History from "./Student Edit/StudentHistory";
 
 import { API_BASE_URL } from '../config'; 
-import { editStudentLinks } from "../components/SidebarLinks"; // Import the shared links
 
 const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
 
 const EditStudent = () => {
   const [activeSection, setActiveSection] = useState("profile");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { id } = useParams(); 
   const navigate = useNavigate();
   const location = useLocation();
@@ -1191,17 +1499,11 @@ const EditStudent = () => {
     history: History,
   };
 
-  const handleMenuClick = (item) => {
-    if (item.isNavigation || item.id === "dashboard") {
-      navigate("/students");
-    } else {
-      setActiveSection(item.id);
-      if (window.innerWidth < 1024) {
-        setIsSidebarOpen(false);
-      }
-    }
-  };
-
+  // Logic to handle section switching based on sidebar interactions
+  // Note: MainLayout uses URLs. If your sidebar links for 'edit-student' 
+  // are intended to switch local state instead of routes, you can keep 
+  // using setActiveSection or update SidebarLinks to use routes.
+  
   const getCurrentComponent = () => {
     if (isLoadingStudent) return <div className="text-center p-10">Loading...</div>;
     
@@ -1217,68 +1519,13 @@ const EditStudent = () => {
     );
   };
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex flex-wrap justify-end items-center gap-4 text-black bg-blue-400 gap-y-4 p-5">
-        <button onClick={toggleSidebar} className="lg:hidden text-white">
-          <Menu className="w-6 h-6" />
-        </button>
-        <div className="flex items-center gap-4">
-          <FontAwesomeIcon icon={faBell} className="text-lg hover:text-white cursor-pointer" />
-          <FontAwesomeIcon icon={faShareNodes} className="text-lg hover:text-white cursor-pointer" />
-          <FontAwesomeIcon icon={faFileExport} className="text-lg hover:text-white cursor-pointer" />
-          <FontAwesomeIcon icon={faCircleUser} className="text-xl hover:text-white cursor-pointer" />
-          <button onClick={() => navigate("/")} className="text-red-600">
-            <FontAwesomeIcon icon={faRightFromBracket} className="text-lg" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row relative">
-        {isSidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
-        )}
-
-        <div className={`fixed lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-30 w-80 bg-white shadow-lg h-screen lg:h-auto ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-400 rounded-lg flex items-center justify-center">
-                <img src="/src/assets/logo.jpeg" alt="Logo" />
-              </div>
-              <h1 className="text-2xl font-bold text-blue-400">SSPD SMS</h1>
-            </div>
-          </div>
-
-          <nav className="p-4 space-y-2">
-            {editStudentLinks.map((item) => {
-              const Icon = item.icon; // This works for FontAwesome or Lucide depending on SidebarLinks.js
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleMenuClick(item)}
-                  className={`w-full flex items-center justify-between p-3 text-left rounded-lg transition-colors duration-200 ${
-                    activeSection === item.id ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50"
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    {/* Render FontAwesomeIcon since SidebarLinks.js uses them */}
-                    <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
-                    <span className="font-medium">{item.text}</span>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 ${activeSection === item.id ? "text-blue-600" : "text-gray-400"}`} />
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="flex-1 p-4 lg:p-8">
-          {getCurrentComponent()}
-        </div>
-      </div>
+    <MainLayout activeSection={activeSection} 
+    onSectionChange={(id) => setActiveSection(id)}>
+      <div className="bg-white rounded-2xl shadow p-4 lg:p-8">
+      {getCurrentComponent()}
     </div>
+    </MainLayout>
   );
 };
 
