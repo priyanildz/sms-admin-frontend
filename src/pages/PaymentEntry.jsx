@@ -3931,6 +3931,7 @@ const PaymentEntry = () => {
             date: formData.date,
             amount: Number(formData.amount),
             mode: formData.mode,
+            installmentPlan: formData.installmentType,
             ...(method === 'post' && { 
                 name: selectedEntry.name,
                 std: selectedEntry.std,
@@ -4002,129 +4003,244 @@ const PaymentEntry = () => {
         return renderTable();
     };
 
-    const renderTable = () => (
-        <div className="overflow-x-auto">
-            <table className="w-full border-collapse border">
-                <thead className="bg-blue-100 text-black">
-                    <tr>
-                        <th className="border px-4 py-2 text-left">Name</th>
-                        <th className="border px-4 py-2 text-left">Std</th>
-                        <th className="border px-4 py-2 text-left">Div</th>
-                        <th className="border px-4 py-2 text-left">Installment Dates</th>
-                        <th className="border px-4 py-2 text-left">Installment Amounts</th>
-                        <th className="border px-4 py-2 text-left">Total Fees Due</th>
-                        <th className="border px-4 py-2 text-left">Paid Amount</th>
-                        <th className="border px-4 py-2 text-left">Remaining</th>
-                        <th className="border px-4 py-2 text-left">Status</th>
-                        <th className="border px-4 py-2 text-left">Action</th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white">
-                    {studentFeeList.map((entry, index) => {
-                        const status = getPaymentStatus(entry);
+    // const renderTable = () => (
+    //     <div className="overflow-x-auto">
+    //         <table className="w-full border-collapse border">
+    //             <thead className="bg-blue-100 text-black">
+    //                 <tr>
+    //                     <th className="border px-4 py-2 text-left">Name</th>
+    //                     <th className="border px-4 py-2 text-left">Std</th>
+    //                     <th className="border px-4 py-2 text-left">Div</th>
+    //                     <th className="border px-4 py-2 text-left">Installment Dates</th>
+    //                     <th className="border px-4 py-2 text-left">Installment Amounts</th>
+    //                     <th className="border px-4 py-2 text-left">Total Fees Due</th>
+    //                     <th className="border px-4 py-2 text-left">Paid Amount</th>
+    //                     <th className="border px-4 py-2 text-left">Remaining</th>
+    //                     <th className="border px-4 py-2 text-left">Status</th>
+    //                     <th className="border px-4 py-2 text-left">Action</th>
+    //                 </tr>
+    //             </thead>
+    //             <tbody className="bg-white">
+    //                 {studentFeeList.map((entry, index) => {
+    //                     const status = getPaymentStatus(entry);
                         
-                        return (
-                            <tr
-                                key={entry._id || index}
-                                className="hover:bg-gray-50 align-top"
-                            >
-                                <td className="border px-4 py-2">
-                                    <button
-                                        onClick={() => handleNameClick(entry.name)}
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                        {entry.name}
-                                    </button>
-                                </td>
-                                <td className="border px-4 py-2">{entry.std}</td>
-                                <td className="border px-4 py-2">{entry.div}</td>
-                                <td className="border px-4 py-2">
-                                    {entry.installments && entry.installments.length > 0 ? (
-                                        entry.installments.map((installment, i) => (
-                                            <div key={i} className="text-sm">
-                                                {new Date(installment.date).toLocaleDateString()}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <span className="text-gray-400">N/A</span>
-                                    )}
-                                </td>
-                                <td className="border px-4 py-2">
-                                    {entry.installments && entry.installments.length > 0 ? (
-                                        entry.installments.map((installment, i) => (
-                                            <div key={i} className="text-sm">
-                                                ₹{(installment.amount || 0).toLocaleString()}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <span className="text-gray-400">₹0</span>
-                                    )}
-                                </td>
-                                <td className="border px-4 py-2 font-semibold">
-                                    ₹{entry.totalFeesDue.toLocaleString()}
-                                </td>
-                                <td className="border px-4 py-2 text-green-600 font-semibold">
-                                    ₹{entry.totalPaid.toLocaleString()}
-                                </td>
-                                <td className="border px-4 py-2 text-red-600 font-semibold">
-                                    ₹{entry.remaining.toLocaleString()}
-                                </td>
-                                <td className="border px-4 py-2">
-                                    <span
-                                        className={`font-semibold px-2 py-1 rounded text-xs ${
-                                            status === "Paid"
-                                                ? "bg-green-100 text-green-800"
-                                                : status === "Partial"
-                                                ? "bg-yellow-100 text-yellow-800"
-                                                : status === "N/A"
-                                                ? "bg-gray-100 text-gray-800"
-                                                : "bg-red-100 text-red-800"
-                                        }`}
-                                    >
-                                        {status}
-                                    </span>
-                                </td>
-                                <td className="border px-4 py-2">
-                                    {status === "Paid" ? (
-                                        <button
-                                            onClick={() => handleActionClick(entry)}
-                                            className="px-3 py-1 rounded text-sm bg-green-500 text-white hover:bg-green-600"
-                                        >
-                                            Download
-                                        </button>
-                                    ) : status === "Partial" ? (
-                                        <div className="flex flex-col gap-1">
-                                            <button
-                                                onClick={() => handleActionClick(entry)}
-                                                className="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600"
-                                            >
-                                                Pay
-                                            </button>
-                                            <button
-                                                onClick={() => downloadReceipt(entry)}
-                                                className="px-3 py-1 rounded text-sm bg-green-500 text-white hover:bg-green-600"
-                                            >
-                                                Receipt
-                                            </button>
+    //                     return (
+    //                         <tr
+    //                             key={entry._id || index}
+    //                             className="hover:bg-gray-50 align-top"
+    //                         >
+    //                             <td className="border px-4 py-2">
+    //                                 <button
+    //                                     onClick={() => handleNameClick(entry.name)}
+    //                                     className="text-blue-600 hover:underline"
+    //                                 >
+    //                                     {entry.name}
+    //                                 </button>
+    //                             </td>
+    //                             <td className="border px-4 py-2">{entry.std}</td>
+    //                             <td className="border px-4 py-2">{entry.div}</td>
+    //                             <td className="border px-4 py-2">
+    //                                 {entry.installments && entry.installments.length > 0 ? (
+    //                                     entry.installments.map((installment, i) => (
+    //                                         <div key={i} className="text-sm">
+    //                                             {new Date(installment.date).toLocaleDateString()}
+    //                                         </div>
+    //                                     ))
+    //                                 ) : (
+    //                                     <span className="text-gray-400">N/A</span>
+    //                                 )}
+    //                             </td>
+    //                             <td className="border px-4 py-2">
+    //                                 {entry.installments && entry.installments.length > 0 ? (
+    //                                     entry.installments.map((installment, i) => (
+    //                                         <div key={i} className="text-sm">
+    //                                             ₹{(installment.amount || 0).toLocaleString()}
+    //                                         </div>
+    //                                     ))
+    //                                 ) : (
+    //                                     <span className="text-gray-400">₹0</span>
+    //                                 )}
+    //                             </td>
+    //                             <td className="border px-4 py-2 font-semibold">
+    //                                 ₹{entry.totalFeesDue.toLocaleString()}
+    //                             </td>
+    //                             <td className="border px-4 py-2 text-green-600 font-semibold">
+    //                                 ₹{entry.totalPaid.toLocaleString()}
+    //                             </td>
+    //                             <td className="border px-4 py-2 text-red-600 font-semibold">
+    //                                 ₹{entry.remaining.toLocaleString()}
+    //                             </td>
+    //                             <td className="border px-4 py-2">
+    //                                 <span
+    //                                     className={`font-semibold px-2 py-1 rounded text-xs ${
+    //                                         status === "Paid"
+    //                                             ? "bg-green-100 text-green-800"
+    //                                             : status === "Partial"
+    //                                             ? "bg-yellow-100 text-yellow-800"
+    //                                             : status === "N/A"
+    //                                             ? "bg-gray-100 text-gray-800"
+    //                                             : "bg-red-100 text-red-800"
+    //                                     }`}
+    //                                 >
+    //                                     {status}
+    //                                 </span>
+    //                             </td>
+    //                             <td className="border px-4 py-2">
+    //                                 {status === "Paid" ? (
+    //                                     <button
+    //                                         onClick={() => handleActionClick(entry)}
+    //                                         className="px-3 py-1 rounded text-sm bg-green-500 text-white hover:bg-green-600"
+    //                                     >
+    //                                         Download
+    //                                     </button>
+    //                                 ) : status === "Partial" ? (
+    //                                     <div className="flex flex-col gap-1">
+    //                                         <button
+    //                                             onClick={() => handleActionClick(entry)}
+    //                                             className="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600"
+    //                                         >
+    //                                             Pay
+    //                                         </button>
+    //                                         <button
+    //                                             onClick={() => downloadReceipt(entry)}
+    //                                             className="px-3 py-1 rounded text-sm bg-green-500 text-white hover:bg-green-600"
+    //                                         >
+    //                                             Receipt
+    //                                         </button>
+    //                                     </div>
+    //                                 ) : status === "N/A" ? (
+    //                                     <span className="text-sm text-gray-500">No Fee Data</span>
+    //                                 ) : (
+    //                                     <button
+    //                                         onClick={() => handleActionClick(entry)}
+    //                                         className="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600"
+    //                                     >
+    //                                         Pay
+    //                                     </button>
+    //                                 )}
+    //                             </td>
+    //                         </tr>
+    //                     );
+    //                 })}
+    //             </tbody>
+    //             </table>
+    //             </div>
+    // );
+
+
+    const renderTable = () => (
+    <div className="overflow-x-auto">
+        <table className="w-full border-collapse border">
+            <thead className="bg-blue-100 text-black">
+                <tr>
+                    <th className="border px-4 py-2 text-left">Name</th>
+                    <th className="border px-4 py-2 text-left">Std</th>
+                    <th className="border px-4 py-2 text-left">Div</th>
+                    <th className="border px-4 py-2 text-left">Installment Dates</th>
+                    <th className="border px-4 py-2 text-left">Installment Amounts</th>
+                    {/* NEW COLUMN HEADER */}
+                    <th className="border px-4 py-2 text-left">Next Due Date</th> 
+                    <th className="border px-4 py-2 text-left">Total Fees Due</th>
+                    <th className="border px-4 py-2 text-left">Paid Amount</th>
+                    <th className="border px-4 py-2 text-left">Remaining</th>
+                    <th className="border px-4 py-2 text-left">Status</th>
+                    <th className="border px-4 py-2 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody className="bg-white">
+                {studentFeeList.map((entry, index) => {
+                    const status = getPaymentStatus(entry);
+                    
+                    // Logic to calculate Next Due Date based on the plan
+                    const calculateNextDueDate = (entry) => {
+                        if (status === "Paid") return "N/A";
+                        
+                        // Use raw payment entry to find the plan
+                        const rawEntry = paymentEntries.find(p => p.name === entry.name);
+                        const plan = rawEntry?.installmentPlan || "Monthly"; // Default to Monthly if not set
+                        
+                        // Get the base date for the next calculation
+                        const baseDate = entry.installments.length > 0 
+                            ? new Date(entry.installments[entry.installments.length - 1].date) 
+                            : new Date(); // Using today's date if no installments exist
+
+                        let nextDate = new Date(baseDate);
+                        if (plan === "Monthly") nextDate.setMonth(nextDate.getMonth() + 1);
+                        else if (plan === "Quarterly") nextDate.setMonth(nextDate.getMonth() + 3);
+                        else if (plan === "Half Yearly") nextDate.setMonth(nextDate.getMonth() + 6);
+                        else return "N/A";
+
+                        return nextDate.toLocaleDateString();
+                    };
+
+                    return (
+                        <tr key={entry._id || index} className="hover:bg-gray-50 align-top">
+                            <td className="border px-4 py-2">
+                                <button onClick={() => handleNameClick(entry.name)} className="text-blue-600 hover:underline">
+                                    {entry.name}
+                                </button>
+                            </td>
+                            <td className="border px-4 py-2">{entry.std}</td>
+                            <td className="border px-4 py-2">{entry.div}</td>
+                            <td className="border px-4 py-2">
+                                {entry.installments && entry.installments.length > 0 ? (
+                                    entry.installments.map((installment, i) => (
+                                        <div key={i} className="text-sm">
+                                            {new Date(installment.date).toLocaleDateString()}
                                         </div>
-                                    ) : status === "N/A" ? (
-                                        <span className="text-sm text-gray-500">No Fee Data</span>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleActionClick(entry)}
-                                            className="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600"
-                                        >
-                                            Pay
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-                </table>
-                </div>
-    );
+                                    ))
+                                ) : (
+                                    <span className="text-gray-400">N/A</span>
+                                )}
+                            </td>
+                            <td className="border px-4 py-2">
+                                {entry.installments && entry.installments.length > 0 ? (
+                                    entry.installments.map((installment, i) => (
+                                        <div key={i} className="text-sm">
+                                            ₹{(installment.amount || 0).toLocaleString()}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <span className="text-gray-400">₹0</span>
+                                )}
+                            </td>
+                            {/* NEW COLUMN CELL */}
+                            <td className="border px-4 py-2 text-black-600 font-semibold">
+                                {calculateNextDueDate(entry)}
+                            </td>
+                            <td className="border px-4 py-2 font-semibold">₹{entry.totalFeesDue.toLocaleString()}</td>
+                            <td className="border px-4 py-2 text-green-600 font-semibold">₹{entry.totalPaid.toLocaleString()}</td>
+                            <td className="border px-4 py-2 text-red-600 font-semibold">₹{entry.remaining.toLocaleString()}</td>
+                            <td className="border px-4 py-2">
+                                <span className={`font-semibold px-2 py-1 rounded text-xs ${
+                                    status === "Paid" ? "bg-green-100 text-green-800" :
+                                    status === "Partial" ? "bg-yellow-100 text-yellow-800" :
+                                    status === "N/A" ? "bg-gray-100 text-gray-800" : "bg-red-100 text-red-800"
+                                }`}>
+                                    {status}
+                                </span>
+                            </td>
+                            <td className="border px-4 py-2">
+                                {status === "Paid" ? (
+                                    <button onClick={() => handleActionClick(entry)} className="px-3 py-1 rounded text-sm bg-green-500 text-white hover:bg-green-600">Download</button>
+                                ) : status === "Partial" ? (
+                                    <div className="flex flex-col gap-1">
+                                        <button onClick={() => handleActionClick(entry)} className="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600">Pay</button>
+                                        <button onClick={() => downloadReceipt(entry)} className="px-3 py-1 rounded text-sm bg-green-500 text-white hover:bg-green-600">Receipt</button>
+                                    </div>
+                                ) : status === "N/A" ? (
+                                    <span className="text-sm text-gray-500">No Fee Data</span>
+                                ) : (
+                                    <button onClick={() => handleActionClick(entry)} className="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600">Pay</button>
+                                )}
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
+    </div>
+);
 
 
     return (
