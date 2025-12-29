@@ -288,7 +288,8 @@ import {
   transportLinks,
   feesLinks,
   profileLinks,
-  examLinks
+  examLinks,
+  editStudentLinks
 } from "../components/SidebarLinks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import logo from "../assets/logo.jpeg";
@@ -319,6 +320,7 @@ export default function MainLayout({ children }) {
   };
 
   const getSidebarLinks = () => {
+    if (currentRoute.includes("/students/edit-student/")) return editStudentLinks;
     if (currentRoute.startsWith("/staff")) return staffLinks;
     if (currentRoute.startsWith("/classes")) return classroomLinks;
     if (currentRoute.startsWith("/academics")) return academicLinks;
@@ -470,10 +472,37 @@ export default function MainLayout({ children }) {
   );
 }
 
+// function SidebarLink({ to, icon, text, isActive, showChevron = true }) {
+//   return (
+//     <Link
+//       to={to}
+//       className={`flex items-center justify-between hover:bg-blue-200 p-3 rounded-md transition-colors border-b border-gray-300 ${
+//         isActive ? "bg-blue-100" : ""
+//       }`}
+//     >
+//       <div className="flex items-center space-x-3 w-full">
+//         {icon && (
+//           <FontAwesomeIcon icon={icon} className="text-xl flex-shrink-0" />
+//         )}
+//         <span className="text-sm md:text-base font-light w-full">{text}</span>
+//       </div>
+//       {showChevron && (
+//         <FontAwesomeIcon
+//           icon={faChevronRight}
+//           className="text-sm text-blue-400 flex-shrink-0 ml-2"
+//         />
+//       )}
+//     </Link>
+//   );
+// }
 function SidebarLink({ to, icon, text, isActive, showChevron = true }) {
+  // If 'to' is missing (as in editStudentLinks), we use "#" to prevent crashes.
+  // This keeps the styling perfect without changing the layout.
+  const path = to || "#"; 
+
   return (
     <Link
-      to={to}
+      to={path}
       className={`flex items-center justify-between hover:bg-blue-200 p-3 rounded-md transition-colors border-b border-gray-300 ${
         isActive ? "bg-blue-100" : ""
       }`}
@@ -493,6 +522,7 @@ function SidebarLink({ to, icon, text, isActive, showChevron = true }) {
     </Link>
   );
 }
+
 
 function getPageTitle(route) {
   if (route.startsWith("/staff")) return "Staff Management";
