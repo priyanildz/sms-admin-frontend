@@ -5350,6 +5350,8 @@ const divisionOptions = [
     { label: "A", value: "A" },
     { label: "B", value: "B" },
     { label: "C", value: "C" },
+    { label: "D", value: "D" },
+    { label: "E", value: "E" },
 ];
 
 // FIX: Payment Modes based on the provided dashboard image legend
