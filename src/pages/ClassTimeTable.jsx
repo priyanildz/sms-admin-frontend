@@ -302,7 +302,7 @@ const ClassTimeTable = () => { // Component renamed to ClassTimeTable
             const data = await response.json();
             setTimetableData(data);
         } catch (err) {
-            setError('Error fetching timetable data: ' + err.message);
+            // setError('Error fetching timetable data: ' + err.message);
             console.error('Error fetching timetable:', err);
         } finally {
             setLoading(false);

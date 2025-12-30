@@ -138,7 +138,7 @@ const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
 // const API_BASE_URL = "http://localhost:5000/api"; // REMOVED LOCAL DEFINITION
 
 // Days of the week displayed in the table headers
-const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday"];
+const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export default function StaffTimetable({ staff }) {
     const staffName = `${staff?.firstname || ''} ${staff?.lastname || ''}`.trim() || 'Staff Member';
@@ -235,7 +235,7 @@ export default function StaffTimetable({ staff }) {
                             </tr>
                         ) : timetableData.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="border border-blue-500 p-8 text-center text-gray-500">
+                                <td colSpan="7" className="border border-blue-500 p-8 text-center text-gray-500">
                                     No timetable found for this staff member.
                                 </td>
                             </tr>
