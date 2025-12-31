@@ -608,7 +608,7 @@ export default function StudentAcademic({ studentid, student }) {
                 <div>
 {/*                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Students Management</h2> */}
                 </div>
-                <div className="flex items-center space-x-4">
+{/*                 <div className="flex items-center space-x-4">
                     <div className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">
                         AY 2025-2026
                     </div>
@@ -626,7 +626,7 @@ export default function StudentAcademic({ studentid, student }) {
                             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isStudentActive ? 'translate-x-6' : 'translate-x-1'}`}/>
                         </button>
                     </div>
-                </div>
+                </div> */}
             </div>
 
             <div className="max-w-4xl mx-auto">
