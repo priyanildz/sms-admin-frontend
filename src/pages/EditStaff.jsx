@@ -2598,7 +2598,7 @@ const EditStaff = () => {
                             <button onClick={toggleActive} disabled={loading || isViewMode} className="relative">
                                 <div className={"rounded-full p-[3px] " + (isActive ? "border-2 border-blue-500" : "border-2 border-gray-300")}
                                      style={{ boxShadow: isActive ? "0 0 0 4px rgba(59,130,246,0.12)" : "0 0 0 4px rgba(156,163,175,0.06)" }}>
-                                    <div className={`w-20 h-10 rounded-full transition-colors duration-200 flex items-center relative ${isActive && !isViewMode ? "bg-green-500" : "bg-gray-300"}`}>
+                                    <div className={`w-20 h-10 rounded-full transition-colors duration-200 flex items-center relative ${isActive && !isViewMode ? "bg-green-500" : "bg-green-500"}`}>
                                         <div className="bg-white w-8 h-8 rounded-full shadow absolute transition-transform duration-200"
                                              style={{ transform: isActive ? "translateX(44px)" : "translateX(4px)" }} />
                                     </div>
