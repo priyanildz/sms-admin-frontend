@@ -21,6 +21,7 @@ import {
   faUserEdit,
   faUserClock,
   // faThLarge,
+  faFileClipboard,
   faMapMarkedAlt,
   faTachometerAlt,
   faCogs,
@@ -31,7 +32,7 @@ import {
   faRedoAlt,
   faFileAlt,
   faArrowUp,
-  faChevronRight
+  // faChevronRight
 } from "@fortawesome/free-solid-svg-icons";
 
 // Main Links for Sidebar
@@ -78,8 +79,8 @@ export const editStaffLinks = [
   { id: "attendance", text: "Attendance", icon: faCalendarAlt },
   { id: "subjects", text: "Subjects", icon: faBookOpen },
   { id: "timetable", text: "Timetable", icon: faClock },
-  { id: "leave", text: "Leave Request", icon: faChevronRight },
-  { id: "history", text: "History", icon: faChevronRight },
+  { id: "leave", text: "Leave Request", icon: faUmbrellaBeach },
+  { id: "history", text: "History", icon: faFileClipboard },
 ];
 
 // Link to return to the dashboard
