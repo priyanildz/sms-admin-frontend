@@ -264,10 +264,10 @@ export default function RolesAndPermissions() {
                 placeholder="Search staff..."
                 className="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
               />
-              <FontAwesomeIcon
+{/*               <FontAwesomeIcon
                 icon={faSearch}
                 className="absolute top-2 right-3 text-gray-500"
-              />
+              /> */}
             </div>
             <button
               onClick={() => setShowModal(true)}

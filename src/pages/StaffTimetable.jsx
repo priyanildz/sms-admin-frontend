@@ -471,7 +471,7 @@ export default function StaffTimetable() {
           )}
 
           <div className="my-4 text-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Timetable</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Timetable</h2>
           </div>
 
           {error && (

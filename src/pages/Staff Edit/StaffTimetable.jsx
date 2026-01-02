@@ -201,12 +201,12 @@ export default function StaffTimetable({ staff }) {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            <h2 className="text-2xl text-center font-semibold text-gray-800 mb-8">
                 Timetable for {staffName}
             </h2>
-            <p className="text-gray-600 mb-6">
+{/*             <p className="text-gray-600 mb-6">
                 Current week's teaching schedule.
-            </p>
+            </p> */}
             
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse border-2 border-blue-500 min-w-[600px]">

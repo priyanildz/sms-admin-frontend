@@ -2844,7 +2844,7 @@ export default function StudentManagement() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="h-full w-full p-6 bg-gray-50 flex items-center justify-center">
+        <div className="h-full w-full p-6 bg-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading students...</p>
@@ -2856,7 +2856,7 @@ export default function StudentManagement() {
 
   return (
     <MainLayout>
-      <div className="h-full w-full p-6 bg-gray-50">
+      <div className="h-full w-full p-6 bg-white">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <div className="flex items-center bg-white px-4 py-2 rounded-full shadow-sm border border-gray-300 w-full md:w-96 transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500">
                 <input

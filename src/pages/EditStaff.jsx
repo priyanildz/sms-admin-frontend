@@ -2357,6 +2357,7 @@
 // };
 
 // export default EditStaff;
+
 import React, { useState, useEffect, useCallback } from "react";
 import { User, BookOpen, Calendar, Clock, ChevronRight } from "lucide-react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -2381,7 +2382,7 @@ const EditStaff = () => {
     const queryParams = new URLSearchParams(location.search);
     const isViewMode = queryParams.get("mode") === "view";
 
-    const pageTitle = isViewMode ? "Staff Profile" : "Staff Registration Form";
+    const pageTitle = isViewMode ? "Staff Profile" : "Edit Staff Profile";
 
     const [activeTab, setActiveTab] = useState("profile");
     const [loading, setLoading] = useState(true);
@@ -2589,7 +2590,7 @@ const EditStaff = () => {
                 <div className="flex-1 p-4 lg:p-8">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                         <div>
-                            <h3 className="text-xl font-semibold">{pageTitle}</h3>
+                            <h3 className="text-2xl font-semibold">{pageTitle}</h3>
                         </div>
                         <div className="flex items-center gap-3">
                             <span className={`text-lg font-semibold ${isActive ? "text-green-600" : "text-red-600"}`}>
@@ -2598,10 +2599,10 @@ const EditStaff = () => {
                             <button onClick={toggleActive} disabled={loading || isViewMode} className="relative">
                                 <div className={"rounded-full p-[3px] " + (isActive ? "border-2 border-blue-500" : "border-2 border-gray-300")}
                                      style={{ boxShadow: isActive ? "0 0 0 4px rgba(59,130,246,0.12)" : "0 0 0 4px rgba(156,163,175,0.06)" }}>
-                                    <div className={`w-20 h-10 rounded-full transition-colors duration-200 flex items-center relative ${isActive && !isViewMode ? "bg-green-500" : "bg-green-500"}`}>
-                                        <div className="bg-white w-8 h-8 rounded-full shadow absolute transition-transform duration-200"
-                                             style={{ transform: isActive ? "translateX(44px)" : "translateX(4px)" }} />
-                                    </div>
+                                    <div className={`w-20 h-10 rounded-full transition-colors duration-200 flex items-center relative ${isActive ? "bg-green-500" : "bg-red-500"}`}>
+    <div className="bg-white w-8 h-8 rounded-full shadow absolute transition-transform duration-200"
+         style={{ transform: isActive ? "translateX(44px)" : "translateX(4px)" }} />
+</div>
                                 </div>
                             </button>
                         </div>

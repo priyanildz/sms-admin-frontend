@@ -721,7 +721,7 @@ export default function StaffLeave({ staff }) {
                 onClose={handleCloseDetails} 
             />
 
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            <h2 className="text-2xl text-center font-semibold text-gray-800 mb-8">
                 Leave Request History 
             </h2>
             

@@ -215,12 +215,10 @@ export default function StaffSubjects({ staff }) {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            <h2 className="text-2xl text-center font-semibold text-gray-800 mb-8">
                 Classes & Subjects Assigned
             </h2>
-            <p className="text-gray-600 mb-6">
-                Showing currently assigned teaching load. {error && error.includes("Warning") && <span className="text-red-500">({error})</span>}
-            </p>
+           
 
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse border-2 border-blue-500">

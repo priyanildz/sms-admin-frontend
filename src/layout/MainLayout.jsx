@@ -764,6 +764,7 @@
   
 //   return "Unknown Page";
 // }
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
@@ -1026,6 +1027,7 @@ function SidebarLink({ to, icon, text, isActive, showChevron = true, onClick }) 
 
 function getPageTitle(route) {
   if (route.startsWith("/staff")) return "Staff Management";
+  if (route.startsWith("/edit-staff")) return "Staff Management";
   if (route.startsWith("/classes")) return "Classroom Management";
   if (route.startsWith("/students")) return "Student Management";
   if (route.startsWith("/academics")) return "Academic Management";

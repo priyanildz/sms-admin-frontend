@@ -473,17 +473,17 @@ export default function StaffLeave() {
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="Search by name, department, or subject..."
-                className="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
+                className="w-80 px-3 py-2 rounded-md border border-gray-300 text-sm"
               />
-              <FontAwesomeIcon
+{/*               <FontAwesomeIcon
                 icon={faSearch}
-                className="absolute top-2 right-3 text-gray-500"
-              />
+                className="absolute top-2 left-70 text-gray-500"
+              /> */}
             </div>
             </div>
 
           <div className="my-4 text-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+            <h2 className="text-xl font-semibold text-gray-800">
               Leave Order
               </h2>
           </div>

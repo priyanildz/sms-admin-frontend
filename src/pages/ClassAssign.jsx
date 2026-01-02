@@ -1273,11 +1273,11 @@ export default function ClassAssign() {
         });
     }, [assignments, searchQuery, standardFilter, divisionFilter, staffs]);
 
-    if (staffLoading && assignmentsLoading) return <MainLayout><div className="text-center p-6">Loading...</div></MainLayout>;
+    // if (staffLoading && assignmentsLoading) return <MainLayout><div className="text-center p-6">Loading...</div></MainLayout>;
 
     return (
         <MainLayout>
-            <div className="bg-white rounded-2xl shadow p-6">
+            <div className="bg-white rounded-2xl shadow p-10">
                 
                 {/* Search (Left) and Filters (Right) Row */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -1326,7 +1326,7 @@ export default function ClassAssign() {
 
                 {/* Classrooms Assigned (Middle Row - Below the button line) */}
                 <div className="flex justify-center mb-6">
-                   <h2 className="text-2xl font-bold text-gray-800">Classrooms Assigned</h2>
+                   <h2 className="text-xl font-semibold text-gray-800">Classrooms Assigned</h2>
                 </div>
 
                 <div className="overflow-x-auto border border-gray-300 rounded-lg"> 

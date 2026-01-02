@@ -286,7 +286,7 @@ export default function EventsActivities({ student }) {
     return (
         <div className="min-h-screen">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold text-center mb-8 text-gray-800">
+                <h1 className="text-2xl font-semibold text-center mt-8 mb-8 text-gray-800">
                     Events & Activities
                 </h1>
 

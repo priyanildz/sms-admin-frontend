@@ -470,6 +470,9 @@ export default function StaffAttendance({ staff }) {
     return (
         <div>
             {/* Month Selector */}
+<div className="text-center mb-8">
+                    <h1 className="text-2xl font-semibold text-gray-800">Attendance</h1>
+                </div>
             <div className="mb-6">
                 <select
                     value={selectedMonthYear}
