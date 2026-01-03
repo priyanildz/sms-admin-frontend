@@ -12851,7 +12851,7 @@ import { API_BASE_URL } from "../config";
 const DEPARTMENTS = ["", "Teaching", "Non-Teaching", "Administration", "Transport", "Security"];
 // UPDATED: Category options as requested
 const GRADES = ["", "Pre-primary", "Primary", "Secondary"]; 
-const POSITIONS = ["", "Principal", "Vice-Principal", "HOD", "Senior Teacher", "Junior Teacher", "Librarian", "IT Staff", "Bus Driver", "Cleaner"];
+const POSITIONS = ["", "Principal", "Vice-Principal", "HOD", "Teacher", "Librarian", "IT Staff", "Bus Driver", "Cleaner"];
 const DESIGNATIONS = [...POSITIONS]; 
 
 // --- Configuration Assumptions ---

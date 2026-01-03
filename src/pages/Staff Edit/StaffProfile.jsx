@@ -1860,7 +1860,7 @@ const IFSC_API_URL = "https://ifsc.razorpay.com/";
 
 // Dropdown Options
 const DEPARTMENTS = ["", "Teaching", "Non-Teaching", "Administration", "Transport", "Security"];
-const POSITIONS = ["", "Principal", "Vice-Principal", "HOD", "Senior Teacher", "Junior Teacher", "Librarian", "IT Staff", "Bus Driver", "Cleaner"];
+const POSITIONS = ["", "Principal", "Vice-Principal", "HOD", "Teacher", "Librarian", "IT Staff", "Bus Driver", "Cleaner"];
 const GRADES = ["", "Pre-primary", "Primary", "Secondary"];
 // 🛑 Fixed formatting for mapping
 const TRANSPORT_MODES = ["", "School Bus", "Personal Vehicle", "Public Transport"];

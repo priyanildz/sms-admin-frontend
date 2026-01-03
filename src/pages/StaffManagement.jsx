@@ -954,7 +954,7 @@ const GRADES_OPTIONS = [
   "1", "2", "3", "4", "5", 
   "6", "7", "8", "9", "10"
 ];
-const POSITIONS = ["", "Principal", "Vice-Principal", "HOD", "Senior Teacher", "Junior Teacher", "Librarian", "IT Staff", "Bus Driver", "Cleaner"];
+const POSITIONS = ["", "Principal", "Vice-Principal", "HOD", "Teacher", "Librarian", "IT Staff", "Bus Driver", "Cleaner"];
 
 export default function StaffManagement() {
   const [staffList, setStaffList] = useState([]);
