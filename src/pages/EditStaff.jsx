@@ -2452,9 +2452,19 @@ const EditStaff = () => {
             const data = await response.json();
 
             const sanitizedData = {};
-            Object.keys(data).forEach(key => {
-                sanitizedData[key] = data[key] === null ? "" : data[key];
-            });
+//             Object.keys(data).forEach(key => {
+//                 sanitizedData[key] = data[key] === null ? "" : data[key];
+//             });
+Object.keys(data).forEach(key => {
+    if (data[key] === null) {
+        sanitizedData[key] = "";
+    } else if (Array.isArray(data[key])) {
+        // Convert arrays to a single string for the <select> components
+        sanitizedData[key] = data[key].length > 0 ? data[key][0] : "";
+    } else {
+        sanitizedData[key] = data[key];
+    }
+});
 
             setStaffData((prev) => ({
                 ...prev,
