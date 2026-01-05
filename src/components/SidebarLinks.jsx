@@ -102,8 +102,9 @@ export const classroomLinks = [
 // Academic Links
 export const academicLinks = [
   { to: "/academics", text: "Attendance", icon: faClipboardList },
-  { to: "/academics-syllabus", text: "Syllabus", icon: faBookOpen },
+  { to: "/academics-subject-creation", text: "Subject Creation", icon: faBook },
   { to: "/academics-subject-allotment", text: "Subject Allotment", icon: faUserEdit },
+  { to: "/academics-syllabus", text: "Syllabus", icon: faBookOpen },
   { to: "/academics-timetable-creation", text: "Timetable Creation", icon: faCalendarAlt },
   { to: "/academics-proxy-management", text: "Proxy Management", icon: faUserClock },
   // { to: "/academics-block-allotment", text: "Block Allotment", icon: faThLarge },

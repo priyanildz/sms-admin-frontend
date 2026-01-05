@@ -166,6 +166,9 @@ import ClassAssign from "./pages/ClassAssign";
 import AcademicAttendance from "./pages/AcademicAttendance";
 import AcademicSyllabus from "./pages/AcademicSyllabus";
 import AcademicSubject from "./pages/AcademicSubject";
+import AcademicEditSubject from "./pages/AcademicEditSubject";
+import AcademicViewSubject from "./pages/AcademicViewSubject";
+import AcademicSubjectCreation from "./pages/AcademicSubjectCreation";
 import AcademicBlock from "./pages/AcademicBlock";
 import AcademicProxy from "./pages/AcademicProxy";
 import AcademicTimetable from "./pages/AcademicTimetable";
@@ -219,6 +222,7 @@ import EditStudent from "./pages/EditStudent";
 import AddSupervisor from "./pages/AddSupervisor";
 import EditTransportStaff from "./pages/EditTransportStaff";
 import VehicleAssign from "./pages/VehicleAssign";
+import CreateSubjectForm from "./pages/CreateSubjectForm";
 
 function App() {
   return (
@@ -251,8 +255,12 @@ function App() {
         <Route path="/classes-test-results" element={<ClassTestResults />} />
         <Route path="/classes-test-result-details/:id" element={<ViewTestResults />} />
         <Route path="/academics" element={<AcademicAttendance />} />
-        <Route path="/academics-syllabus" element={<AcademicSyllabus />} />
+        <Route path="/academics-subject-creation" element={<AcademicSubjectCreation />} />
+        <Route path="/academics-edit-subject/:id" element={<AcademicEditSubject />} />
+<Route path="/academics-view-subject/:id" element={<AcademicViewSubject />} />
         <Route path="/academics-subject-allotment" element={<AcademicSubject />} />
+        <Route path="/academics-create-subject-form" element={<CreateSubjectForm />} />
+        <Route path="/academics-syllabus" element={<AcademicSyllabus />} />
         <Route path="/academics-timetable-creation" element={<AcademicTimetable />} />
         <Route path="/academics-proxy-management" element={<AcademicProxy />} />
         <Route path="/academics-block-allotment" element={<AcademicBlock />} />
