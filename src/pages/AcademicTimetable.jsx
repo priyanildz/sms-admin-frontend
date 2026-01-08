@@ -3564,7 +3564,7 @@ const AcademicTimetable = () => {
             <div className="flex flex-col w-full">
                 <div className="bg-white rounded-2xl shadow p-6">
                     <div className="p-6 space-y-6">
-                        {loading && <div className="text-center text-blue-500 font-semibold italic">Processing request... check console logs for details.</div>}
+                        {loading && <div className="text-center text-blue-500 font-semibold italic">Loading...</div>}
                         <div className="flex justify-between items-center">
                             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                             {!viewMode && <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors" disabled={loading}>Add New Timetable</button>}

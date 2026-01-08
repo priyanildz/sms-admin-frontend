@@ -1285,7 +1285,7 @@ const CreateTimetable = () => {
 
 
   const standards = [
-    "Nursey",
+    "Nursery",
     "Junior",
     "Senior",
     "1",
