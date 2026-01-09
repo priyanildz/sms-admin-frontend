@@ -4735,10 +4735,30 @@ export default function StudentAdmission() {
         alert("Student admission successful! Assigned to Division " + assignedDivision);
         setTimeout(() => navigate("/students"), 500); 
       }
-    } catch (err) {
-      console.error("Form submission error:", err.response);
-      alert("Student already exists Please check the Adhar Card number!");
-    }
+    // } catch (err) {
+    //   console.error("Form submission error:", err.response);
+    //   alert("Student already exists Please check the Adhar Card number!");
+    // }
+    }catch (err) {
+  console.error("Form submission error:", err.response);
+
+  // Check if the backend sent a specific conflict message
+  if (err.response && err.response.status === 409) {
+    const backendMessage = err.response.data.message;
+    const duplicateField = err.response.data.duplicateField;
+
+    // Provide a user-friendly field name
+    let friendlyField = duplicateField;
+    if (duplicateField === "admission.admissionno") friendlyField = "Admission Number";
+    if (duplicateField === "aadharno") friendlyField = "Aadhaar Card Number";
+    if (duplicateField === "parent.primarycontact") friendlyField = "Contact Number";
+
+    alert(`Student already exists! Please check the ${friendlyField}.`);
+  } else {
+    // Fallback for other types of errors
+    alert("An error occurred during submission. Please try again later.");
+  }
+}
   };
 
   return (

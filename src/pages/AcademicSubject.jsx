@@ -2309,19 +2309,42 @@ export default function AcademicSubject() {
         fetchConfiguredSubjects();
     }, [selectedStd]);
 
+    // const getFilteredTeacherOptions = (std) => {
+    //     const getCategory = (s) => {
+    //         if (["Nursery", "Junior", "Senior"].includes(s)) return "pre-primary";
+    //         if (["1", "2", "3", "4", "5"].includes(s)) return "primary";
+    //         if (["6", "7", "8", "9", "10"].includes(s)) return "secondary";
+    //         return "";
+    //     };
+    //     const requiredCategory = getCategory(std);
+    //     return teachers
+    //         .filter(t => (t.role?.preferredgrades || []).some(g => g.toLowerCase().includes(requiredCategory)))
+    //         .map(t => ({ value: `${t._id},${t.firstname} ${t.lastname}`, label: `${t.firstname} ${t.lastname}` }));
+    // };
+
     const getFilteredTeacherOptions = (std) => {
-        const getCategory = (s) => {
-            if (["Nursery", "Junior", "Senior"].includes(s)) return "pre-primary";
-            if (["1", "2", "3", "4", "5"].includes(s)) return "primary";
-            if (["6", "7", "8", "9", "10"].includes(s)) return "secondary";
-            return "";
-        };
-        const requiredCategory = getCategory(std);
-        return teachers
-            .filter(t => (t.role?.preferredgrades || []).some(g => g.toLowerCase().includes(requiredCategory)))
-            .map(t => ({ value: `${t._id},${t.firstname} ${t.lastname}`, label: `${t.firstname} ${t.lastname}` }));
+    const getCategory = (s) => {
+        // We use lowercase to ensure consistent comparison
+        if (["Nursery", "Junior", "Senior"].includes(s)) return "pre-primary";
+        if (["1", "2", "3", "4", "5"].includes(s)) return "primary";
+        if (["6", "7", "8", "9", "10"].includes(s)) return "secondary";
+        return "";
     };
 
+    const requiredCategory = getCategory(std);
+
+    return teachers
+        .filter(t => {
+            const teacherGrades = t.role?.preferredgrades || [];
+            // 🚀 FIX: Use an exact match check instead of .includes() 
+            // to prevent "primary" from matching "pre-primary"
+            return teacherGrades.some(grade => grade.toLowerCase() === requiredCategory);
+        })
+        .map(t => ({ 
+            value: `${t._id},${t.firstname} ${t.middlename} ${t.lastname}`, 
+            label: `${t.firstname} ${t.middlename} ${t.lastname}` 
+        }));
+};
     const resetFormState = () => {
         setSelectedStd("");
         setIsEditMode(false);
@@ -2356,7 +2379,7 @@ export default function AcademicSubject() {
     };
 
     const handleTeacherChange = (rowId, teacherId, value) => {
-        const teacher = teachers.find(t => `${t._id},${t.firstname} ${t.lastname}` === value);
+        const teacher = teachers.find(t => `${t._id},${t.firstname} ${t.middlename} ${t.lastname}` === value);
         setAllotmentRows(allotmentRows.map(row => 
             row.id === rowId ? {
                 ...row,
