@@ -223,6 +223,7 @@ import AddSupervisor from "./pages/AddSupervisor";
 import EditTransportStaff from "./pages/EditTransportStaff";
 import VehicleAssign from "./pages/VehicleAssign";
 import CreateSubjectForm from "./pages/CreateSubjectForm";
+import ViewTeacherTimetable from "./pages/ViewTeacherTimetable";
 
 function App() {
   return (
@@ -230,6 +231,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<Dashboard /> } />
+        <Route path="/view-teacher-timetable/:id" element={<ViewTeacherTimetable />} />
         <Route path="/staff" element={<StaffManagement />} />
         <Route path="/staff-registration" element={<StaffRegistration />} />
         <Route path="/staff-leave" element={<StaffLeaveRequest />} />

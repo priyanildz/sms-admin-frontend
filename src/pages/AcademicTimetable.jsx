@@ -3297,6 +3297,370 @@
 
 
 
+// import React, { useState, useEffect, useMemo } from "react";
+// import MainLayout from "../layout/MainLayout"; 
+// import SelectField from "../components/SelectField"; 
+// import { API_BASE_URL } from '../config'; 
+
+// const FIXED_PERIOD_STRUCTURE = [
+//   { num: 1, time: "07:00-08:00", type: "Period", isBreak: false }, 
+//   { num: null, time: "08:00-08:05", type: "Break", isBreak: true },
+//   { num: 2, time: "08:05-08:55", type: "Period", isBreak: false },
+//   { num: null, time: "08:55-09:00", type: "Break", isBreak: true },
+//   { num: 3, time: "09:00-09:50", type: "Period", isBreak: false },
+//   { num: null, time: "09:50-10:10", type: "Lunch / Recess", isBreak: true },
+//   { num: 4, time: "10:10-11:00", type: "Period", isBreak: false },
+//   { num: null, time: "11:00-11:05", type: "Break", isBreak: true }, 
+//   { num: 6, time: "11:05-11:55", type: "Period", isBreak: false },
+//   { num: null, time: "11:55-12:00", type: "Break", isBreak: true }, 
+//   { num: 7, time: "12:00-01:00", type: "Period", isBreak: false }, 
+// ];
+
+// const HOLIDAYS = [
+//   { date: '2025-01-26', name: 'Republic Day' },
+//   { date: '2025-03-14', name: 'Holi Festival' }, 
+//   { date: '2025-04-13', name: 'Ram Navami' },
+//   { date: '2025-05-01', name: 'Labour Day/Maharashtra Day' },
+//   { date: '2025-08-15', name: 'Independence Day' },
+//   { date: '2025-10-02', name: 'Gandhi Jayanti' },
+//   { date: '2025-10-29', name: 'Diwali Holiday' }, 
+//   { date: '2025-10-30', name: 'Diwali Holiday' },
+//   { date: '2025-12-25', name: 'Christmas Day' },
+//   { date: '2026-01-26', name: 'Republic Day' },
+//   { date: '2026-08-15', name: 'Independence Day' },
+//   { date: '2026-10-02', name: 'Gandhi Jayanti' }
+// ];
+
+// const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=';
+// const WEEKDAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+// const TOTAL_PERIODS = FIXED_PERIOD_STRUCTURE.length;
+
+// const pad = (num) => (num < 10 ? '0' : '') + num;
+
+// const getWeekDaysStartingFrom = (startDateString) => {
+//     const parts = startDateString.split('-');
+//     const year = parseInt(parts[0]);
+//     const month = parseInt(parts[1]) - 1; 
+//     const day = parseInt(parts[2]);
+//     let currentDate = new Date(Date.UTC(year, month, day)); 
+//     const scheduleDays = [];
+//     let stop = false;
+//     for (let i = 0; i < 7; i++) { 
+//         if (stop) break;
+//         const dayIndex = currentDate.getUTCDay(); 
+//         const dayName = WEEKDAYS_FULL[dayIndex];
+//         const isoDateString = `${currentDate.getUTCFullYear()}-${pad(currentDate.getUTCMonth() + 1)}-${pad(currentDate.getUTCDate())}`;
+//         const displayDateString = `${pad(currentDate.getUTCDate())}/${pad(currentDate.getUTCMonth() + 1)}/${currentDate.getUTCFullYear()}`;
+//         scheduleDays.push({ dayName, date: isoDateString, displayDate: displayDateString, isSunday: dayIndex === 0 });
+//         if (dayIndex === 0) stop = true;
+//         currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+//     }
+//     let sliceIndex = -1;
+//     for (let i = 0; i < scheduleDays.length; i++) {
+//         if (scheduleDays[i].isSunday) { sliceIndex = i; break; }
+//     }
+//     return sliceIndex !== -1 ? scheduleDays.slice(0, sliceIndex + 1) : scheduleDays;
+// };
+
+// const isHoliday = (dateString) => {
+//     const parts = dateString.split('-');
+//     const monthDay = `${parts[1]}-${parts[2]}`; 
+//     if (monthDay === '01-26') return 'Republic Day';
+//     if (monthDay === '08-15') return 'Independence Day';
+//     if (monthDay === '12-25') return 'Christmas Day';
+//     const manualHoliday = HOLIDAYS.find(h => h.date === dateString);
+//     return manualHoliday ? manualHoliday.name : null;
+// };
+
+// const AcademicTimetable = () => {
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [viewMode, setViewMode] = useState(false);
+//   const [selectedRow, setSelectedRow] = useState(null);
+//   const [timetableData, setTimetableData] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
+//   const [currentWeekStartDate, setCurrentWeekStartDate] = useState(null); 
+//   const [selectedStandardToPublish, setSelectedStandardToPublish] = useState('');
+//   const [standard, setStandard] = useState("");
+//   const [timing, setTiming] = useState("07:00 - 12:55"); 
+//   const [fromDate, setFromDate] = useState("");
+//   const [toDate, setToDate] = useState("");
+
+//   const stdOptions = ["Select Standard", "Nursery", "Junior", "Senior", "1","2","3","4","5","6","7","8","9","10"];
+//   const timingOptions = ["07:00 - 12:55"]; 
+  
+//   const availableStandards = useMemo(() => {
+//       const data = timetableData || []; 
+//       const standards = new Set();
+//       data.forEach(tt => standards.add(tt.standard));
+//       const sortedStandards = Array.from(standards).sort((a, b) => parseInt(a) - parseInt(b));
+//       return ["Select Standard", ...sortedStandards];
+//   }, [timetableData]);
+    
+//   const showMessage = (msg) => window.alert(msg);
+
+//   const fetchTimetableData = async () => {
+//     setLoading(true);
+//     setError("");
+//     try {
+//       console.log("Fetching timetables...");
+//       const response = await fetch(`${API_BASE_URL}api/timetables`,{ headers:{ auth: AUTH_HEADER } });
+//       if (!response.ok) {
+//         if (response.status === 404) { setTimetableData([]); return; }
+//         throw new Error(`Server returned ${response.status}: Failed to fetch timetable data`);
+//       }
+//       const data = await response.json();
+//       setTimetableData(data);
+//     } catch (err) {
+//       console.error("Fetch Error:", err);
+//       setError('Error fetching timetable data: ' + err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => { fetchTimetableData(); }, []);
+    
+//   const handleViewClick = (row) => {
+//       setSelectedRow(row);
+//       setViewMode(true);
+//       setCurrentWeekStartDate(row.from); 
+//   }
+
+//   const createTimetable = async () => {
+//     if (!standard || standard === "Select Standard" || !fromDate || !toDate || !timing) {
+//       showMessage("Please fill in all required fields and select a valid Standard.");
+//       return;
+//     }
+
+//     setLoading(true);
+//     setError(""); 
+    
+//     const generationRequest = { standard, from: fromDate, to: toDate, timing, submittedby: 'Testing Admin' };
+//     console.log("Starting Timetable Generation for:", standard, generationRequest);
+
+//     try {
+//       const response = await fetch(`${API_BASE_URL}api/timetables/generate`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json', auth: AUTH_HEADER },
+//         body: JSON.stringify(generationRequest),
+//       });
+
+//       const result = await response.json();
+
+//       if (!response.ok) {
+//         // Build descriptive error message from backend failure details
+//         let errorMessage = result.error || "Failed to generate timetables.";
+//         if (result.details && Array.isArray(result.details)) {
+//           const detailMsgs = result.details.map(d => `Div ${d.division}: ${d.error}`).join('\n');
+//           errorMessage = `${errorMessage}\n\nReason:\n${detailMsgs}`;
+//         }
+//         console.error("Generation failed. Reason:", errorMessage);
+//         throw new Error(errorMessage);
+//       }
+      
+//       console.log("Generation response received:", result);
+
+//       if (!result.timetables || result.timetables.length === 0) {
+//         throw new Error(result.message || 'Generation returned no data.');
+//       }
+
+//       setTimetableData(prevData => [...prevData, ...result.timetables]);
+//       setIsModalOpen(false);
+//       setStandard(""); setFromDate(""); setToDate("");
+
+//       // Handle partially successful generation
+//       if (result.failedDivisions && result.failedDivisions.length > 0) {
+//         const failureDetails = result.failedDivisions.map(f => `Div ${f.division}: ${f.error}`).join('\n');
+//         showMessage(`Timetables generated with some issues:\n\n${failureDetails}`);
+//       } else {
+//         showMessage(`Timetables generated successfully for all divisions.`);
+//       }
+      
+//       fetchTimetableData();
+      
+//     } catch (err) {
+//       console.error("Critical Generation Error:", err.message);
+//       setError("Generation failed: " + err.message);
+//       showMessage("Error: " + err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const deleteTimetable = async (id, std, div) => {
+//     if (!window.confirm(`Are you sure you want to delete Std ${std} - ${div}?`)) return;
+//     try {
+//       setLoading(true);
+//       console.log(`Deleting timetable ID: ${id} (Std: ${std}, Div: ${div})`);
+//       const response = await fetch(`${API_BASE_URL}api/timetables/${id}`, { method: 'DELETE', headers: { auth: AUTH_HEADER } });
+//       if (!response.ok) throw new Error(`Delete failed with status ${response.status}`);
+//       setTimetableData(timetableData.filter(item => item._id !== id));
+//       showMessage("Deleted successfully!");
+//     } catch (err) {
+//       console.error("Delete Error:", err.message);
+//       showMessage("Error: " + err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handlePublishTimetable = async () => {
+//       if (!selectedStandardToPublish || selectedStandardToPublish === "Select Standard") {
+//           showMessage("Please select a Standard to publish.");
+//           return;
+//       }
+//       try {
+//           setLoading(true);
+//           console.log(`Publishing Standard: ${selectedStandardToPublish}`);
+//           const response = await fetch(`${API_BASE_URL}api/timetables/publish/${selectedStandardToPublish}`, { method: 'PUT', headers: { auth: AUTH_HEADER } });
+//           const result = await response.json();
+//           if (!response.ok) throw new Error(result.error || 'Server error during publish.');
+//           showMessage(result.message || `Published successfully.`);
+//           fetchTimetableData(); 
+//       } catch (err) {
+//           console.error("Publish Error:", err.message);
+//           showMessage(`Publishing failed: ${err.message}.`);
+//       } finally {
+//           setLoading(false);
+//       }
+//   };
+
+//   const getScheduleForWeek = (timetable, startDateString) => {
+//       if (!timetable || !timetable.timetable || !startDateString) return [];
+//       const weekDays = getWeekDaysStartingFrom(startDateString);
+//       return FIXED_PERIOD_STRUCTURE.map(p => {
+//           const row = { time: p.time };
+//           weekDays.forEach(({ dayName, date, isSunday }) => {
+//               let content = { subject: '-', teacher: null, isHoliday: false, isBreak: false, isSundayHoliday: false };
+//               if (isSunday) { content = { subject: 'WEEKLY HOLIDAY', isHoliday: true, isSundayHoliday: true }; }
+//               else {
+//                   const holidayName = isHoliday(date);
+//                   if (holidayName) { content = { subject: holidayName, isHoliday: true }; }
+//                   else {
+//                       const dayData = timetable.timetable.find(d => d.day === dayName);
+//                       const period = dayData?.periods.find(slot => slot.time === p.time);
+//                       if (period) {
+//                           const isBreakOrLunch = period.subject.toLowerCase().includes('break') || period.subject.toLowerCase().includes('lunch');
+//                           content = { subject: period.subject || 'Empty', teacher: period.teacherName || 'TBD', isBreak: isBreakOrLunch };
+//                       }
+//                   }
+//               }
+//               row[date] = content;
+//           });
+//           return row;
+//       });
+//   };
+    
+//   const displayTimetable = selectedRow && currentWeekStartDate ? getScheduleForWeek(selectedRow, currentWeekStartDate) : [];
+//   const displayDates = currentWeekStartDate ? getWeekDaysStartingFrom(currentWeekStartDate) : [];
+//   const weekEndDate = displayDates.length > 0 ? displayDates[displayDates.length - 1].displayDate : 'N/A';
+//   const filteredTimetableData = timetableData.filter((row) => row.standard?.toString().toLowerCase().includes(searchQuery.toLowerCase()) || row.division?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+//   return (
+//     <MainLayout>
+//         <> 
+//             <div className="flex flex-col w-full">
+//                 <div className="bg-white rounded-2xl shadow p-6">
+//                     <div className="p-6 space-y-6">
+//                         {loading && <div className="text-center text-blue-500 font-semibold italic">Loading...</div>}
+//                         <div className="flex justify-between items-center">
+//                             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+//                             {!viewMode && <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors" disabled={loading}>Add New Timetable</button>}
+//                         </div>
+//                         {!viewMode && (
+//                             <div className="flex flex-col items-center mt-6 w-full">
+//                                 <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4 w-full">Timetable Management</h2>
+//                                 <div className="flex items-center gap-3 w-full justify-start">
+//                                     <SelectField label="" options={availableStandards} value={selectedStandardToPublish} onChange={(value) => setSelectedStandardToPublish(value)} placeholder="Select Standard" className="!w-48" />
+//                                     <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors" onClick={handlePublishTimetable} disabled={!selectedStandardToPublish || selectedStandardToPublish === "Select Standard" || loading}>Publish</button>
+//                                 </div>
+//                             </div>
+//                         )}
+//                         {viewMode ? (
+//                             <>
+//                                 <div className="text-center">
+//                                     <h2 className="text-xl font-semibold">Standard {selectedRow?.standard} - Division {selectedRow?.division || 'N/A'}</h2>
+//                                     <p className="text-sm text-gray-600 mt-1">{displayDates[0]?.displayDate} to {weekEndDate}</p>
+//                                 </div>
+//                                 <div className="overflow-x-auto mt-6">
+//                                     <table className="min-w-full border border-gray-300 rounded-lg">
+//                                         <thead className="bg-blue-100">
+//                                             <tr>
+//                                                 <th className="px-4 py-3 border font-semibold w-[100px]">Time</th>
+//                                                 {displayDates.map(({ dayName, date, displayDate }) => (<th key={date} className="px-4 py-3 border font-semibold">{dayName}<div className="text-xs font-normal opacity-80 mt-1">{displayDate}</div></th>))}
+//                                             </tr>
+//                                         </thead>
+//                                         <tbody className="bg-white">
+//                                             {displayTimetable.map((row, rowIdx) => (
+//                                                 <tr key={rowIdx} className="hover:bg-gray-50">
+//                                                     <td className="px-4 py-3 border font-medium bg-gray-50 text-sm">{row.time}</td>
+//                                                     {displayDates.map(({ date }) => {
+//                                                         const cell = row[date];
+//                                                         if (cell.isHoliday && rowIdx === 0) {
+//                                                             const bg = cell.isSundayHoliday ? 'bg-orange-300 text-orange-900' : 'bg-red-200 text-red-800';
+//                                                             return (<td key={date} rowSpan={TOTAL_PERIODS} className={`border text-center align-middle font-bold ${bg}`} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: '18px', letterSpacing: '5px' }}>{cell.subject.toUpperCase()}</td>);
+//                                                         }
+//                                                         if (cell.isHoliday) return null;
+//                                                         const bg = cell.isBreak ? 'bg-gray-200 text-gray-800' : 'bg-blue-100 text-blue-800';
+//                                                         return (<td key={date} className={`px-2 py-3 border text-center text-sm align-top ${cell.isBreak ? 'bg-gray-100' : ''}`}>{cell.subject !== '-' && <div className={`p-1 rounded ${bg} font-semibold leading-tight`}>{cell.subject}</div>}{cell.teacher && !cell.isBreak && <div className="mt-1 text-xs text-gray-600 font-medium italic">({cell.teacher})</div>}{cell.subject === '-' && <span className="text-gray-400">-</span>}</td>);
+//                                                     })}
+//                                                 </tr>
+//                                             ))}
+//                                         </tbody>
+//                                     </table>
+//                                 </div>
+//                                 <div className="mt-6"><button onClick={() => { setViewMode(false); setSelectedRow(null); setCurrentWeekStartDate(null); }} className="text-blue-600 hover:underline text-sm">← Back to list</button></div>
+//                             </>
+//                         ) : (
+//                             <div className="overflow-x-auto mt-6">
+//                                 <table className="min-w-full border border-gray-300 rounded-lg">
+//                                     <thead className="bg-blue-100">
+//                                         <tr><th className="px-4 py-3 border font-semibold">Standard</th><th className="px-4 py-3 border font-semibold">Division</th><th className="px-4 py-3 border font-semibold">Created By</th><th className="px-4 py-3 border font-semibold">Action</th></tr>
+//                                     </thead>
+//                                     <tbody className="bg-white">
+//                                         {filteredTimetableData.length > 0 ? filteredTimetableData.map((row, idx) => (
+//                                             <tr key={row._id || idx} className="hover:bg-gray-50 text-center">
+//                                                 <td className="px-4 py-3 border font-medium">{row.standard}</td>
+//                                                 <td className="px-4 py-3 border font-medium">{row.division || 'N/A'}</td>
+//                                                 <td className="px-4 py-3 border">{row.submittedby || 'N/A'}</td>
+//                                                 <td className="px-4 py-3 border space-x-3"><button className="text-blue-600 hover:underline font-medium" onClick={() => handleViewClick(row)}>View</button><button className="text-red-600 hover:underline font-medium" onClick={() => deleteTimetable(row._id, row.standard, row.division)}>Delete</button></td>
+//                                             </tr>
+//                                         )) : <tr><td colSpan="4" className="px-4 py-8 text-center text-gray-500">No timetables found</td></tr>}
+//                                     </tbody>
+//                                 </table>
+//                             </div>
+//                         )}
+//                     </div>
+//                 </div>
+//                 {isModalOpen && (
+//                     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(50, 50, 50, 0.5)' }}>
+//                         <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+//                             <h3 className="text-xl font-semibold mb-6 text-center text-gray-800">Generate New Timetable (For All Divisions)</h3>
+//                             <div className="space-y-4">
+//                                 <SelectField label="Standard" options={stdOptions} value={standard} onChange={(v) => setStandard(v)} />
+//                                 <SelectField label="Timing" options={timingOptions} value={timing} onChange={(v) => setTiming(v)} />
+//                                 <div><label className="block text-sm font-medium text-gray-700 mb-2">Start Date (From)</label><input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2" /></div>
+//                                 <div><label className="block text-sm font-medium text-gray-700 mb-2">End Date (To)</label><input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2" /></div>
+//                             </div>
+//                             <div className="flex justify-end gap-4 mt-6">
+//                                 <button onClick={() => { setIsModalOpen(false); setStandard(""); setTiming("07:00 - 12:55"); setFromDate(""); setToDate(""); }} className="px-4 py-2 border border-gray-300 rounded text-gray-600">Cancel</button>
+//                                 <button onClick={createTimetable} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={!standard || standard === "Select Standard" || !timing || !fromDate || !toDate || loading}>{loading ? 'Generating All...' : 'Generate Timetables'}</button>
+//                             </div>
+//                         </div>
+//                     </div>
+//                 )}
+//             </div>
+//         </> 
+//     </MainLayout>
+//   );
+// };
+
+// export default AcademicTimetable;
+
+
+
 import React, { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layout/MainLayout"; 
 import SelectField from "../components/SelectField"; 
@@ -3384,8 +3748,6 @@ const AcademicTimetable = () => {
   const [selectedStandardToPublish, setSelectedStandardToPublish] = useState('');
   const [standard, setStandard] = useState("");
   const [timing, setTiming] = useState("07:00 - 12:55"); 
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
 
   const stdOptions = ["Select Standard", "Nursery", "Junior", "Senior", "1","2","3","4","5","6","7","8","9","10"];
   const timingOptions = ["07:00 - 12:55"]; 
@@ -3429,7 +3791,7 @@ const AcademicTimetable = () => {
   }
 
   const createTimetable = async () => {
-    if (!standard || standard === "Select Standard" || !fromDate || !toDate || !timing) {
+    if (!standard || standard === "Select Standard" || !timing) {
       showMessage("Please fill in all required fields and select a valid Standard.");
       return;
     }
@@ -3437,7 +3799,7 @@ const AcademicTimetable = () => {
     setLoading(true);
     setError(""); 
     
-    const generationRequest = { standard, from: fromDate, to: toDate, timing, submittedby: 'Testing Admin' };
+    const generationRequest = { standard, timing, submittedby: 'Testing Admin' };
     console.log("Starting Timetable Generation for:", standard, generationRequest);
 
     try {
@@ -3450,32 +3812,23 @@ const AcademicTimetable = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        // Build descriptive error message from backend failure details
         let errorMessage = result.error || "Failed to generate timetables.";
         if (result.details && Array.isArray(result.details)) {
           const detailMsgs = result.details.map(d => `Div ${d.division}: ${d.error}`).join('\n');
           errorMessage = `${errorMessage}\n\nReason:\n${detailMsgs}`;
         }
-        console.error("Generation failed. Reason:", errorMessage);
         throw new Error(errorMessage);
       }
       
-      console.log("Generation response received:", result);
-
-      if (!result.timetables || result.timetables.length === 0) {
-        throw new Error(result.message || 'Generation returned no data.');
-      }
-
       setTimetableData(prevData => [...prevData, ...result.timetables]);
       setIsModalOpen(false);
-      setStandard(""); setFromDate(""); setToDate("");
+      setStandard("");
 
-      // Handle partially successful generation
       if (result.failedDivisions && result.failedDivisions.length > 0) {
         const failureDetails = result.failedDivisions.map(f => `Div ${f.division}: ${f.error}`).join('\n');
         showMessage(`Timetables generated with some issues:\n\n${failureDetails}`);
       } else {
-        showMessage(`Timetables generated successfully for all divisions.`);
+        showMessage(`Timetables generated successfully for the academic year.`);
       }
       
       fetchTimetableData();
@@ -3513,14 +3866,12 @@ const AcademicTimetable = () => {
       }
       try {
           setLoading(true);
-          console.log(`Publishing Standard: ${selectedStandardToPublish}`);
           const response = await fetch(`${API_BASE_URL}api/timetables/publish/${selectedStandardToPublish}`, { method: 'PUT', headers: { auth: AUTH_HEADER } });
           const result = await response.json();
           if (!response.ok) throw new Error(result.error || 'Server error during publish.');
           showMessage(result.message || `Published successfully.`);
           fetchTimetableData(); 
       } catch (err) {
-          console.error("Publish Error:", err.message);
           showMessage(`Publishing failed: ${err.message}.`);
       } finally {
           setLoading(false);
@@ -3564,7 +3915,7 @@ const AcademicTimetable = () => {
             <div className="flex flex-col w-full">
                 <div className="bg-white rounded-2xl shadow p-6">
                     <div className="p-6 space-y-6">
-                        {loading && <div className="text-center text-blue-500 font-semibold italic">Loading...</div>}
+                        {loading && <div className="text-center text-blue-500 font-semibold italic">Processing request...</div>}
                         <div className="flex justify-between items-center">
                             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                             {!viewMode && <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors" disabled={loading}>Add New Timetable</button>}
@@ -3641,12 +3992,13 @@ const AcademicTimetable = () => {
                             <div className="space-y-4">
                                 <SelectField label="Standard" options={stdOptions} value={standard} onChange={(v) => setStandard(v)} />
                                 <SelectField label="Timing" options={timingOptions} value={timing} onChange={(v) => setTiming(v)} />
-                                <div><label className="block text-sm font-medium text-gray-700 mb-2">Start Date (From)</label><input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2" /></div>
-                                <div><label className="block text-sm font-medium text-gray-700 mb-2">End Date (To)</label><input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2" /></div>
+                                {/* <div className="p-3 bg-blue-50 text-blue-800 text-xs rounded border border-blue-200 italic">
+                                    Note: Timetables will be generated for the entire academic year automatically.
+                                </div> */}
                             </div>
                             <div className="flex justify-end gap-4 mt-6">
-                                <button onClick={() => { setIsModalOpen(false); setStandard(""); setTiming("07:00 - 12:55"); setFromDate(""); setToDate(""); }} className="px-4 py-2 border border-gray-300 rounded text-gray-600">Cancel</button>
-                                <button onClick={createTimetable} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={!standard || standard === "Select Standard" || !timing || !fromDate || !toDate || loading}>{loading ? 'Generating All...' : 'Generate Timetables'}</button>
+                                <button onClick={() => { setIsModalOpen(false); setStandard(""); setTiming("07:00 - 12:55"); }} className="px-4 py-2 border border-gray-300 rounded text-gray-600">Cancel</button>
+                                <button onClick={createTimetable} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={!standard || standard === "Select Standard" || !timing || loading}>{loading ? 'Generating All...' : 'Generate Timetables'}</button>
                             </div>
                         </div>
                     </div>
