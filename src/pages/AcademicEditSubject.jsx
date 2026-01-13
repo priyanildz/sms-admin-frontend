@@ -18,13 +18,32 @@ const AcademicEditSubject = () => {
     { name: "Hindi", subOptions: [] },
     { name: "Marathi", subOptions: [] },
     { name: "Sanskrit", subOptions: [] },
+    { name: "Sindhi", subOptions: [] },
+    { name: "Urdu", subOptions: [] },
+    { name: "French", subOptions: [] },
     { name: "Mathematics", subOptions: ["Numbers", "Arithmetic", "Algebra", "Geometry", "Mensuration", "Statistics"] },
+    { name: "Numbers", subOptions: [] },
+    { name: "EVS", subOptions: [] },
     { name: "Science", subOptions: ["Physics", "Chemistry", "Biology"] },
     { name: "Social Science", subOptions: ["History", "Civics", "Political Science", "Geography"] },
+    { name: "Economics", subOptions: [] },
     { name: "Computer", subOptions: [] },
+    { name: "Information Technology", subOptions: [] },
+    { name: "Coding", subOptions: [] },
     { name: "Drawing", subOptions: [] },
+    { name: "Art & Craft", subOptions: [] },
+    { name: "Music", subOptions: [] },
+    { name: "Dance", subOptions: [] },
+    { name: "Drama", subOptions: [] },
     { name: "Physical Education", subOptions: [] },
-  ];
+    { name: "Yoga", subOptions: [] },
+    { name: "Health & Wellness", subOptions: [] },
+    { name: "Moral Education", subOptions: [] },
+    { name: "Value Education", subOptions: [] },
+    { name: "General Knowledge", subOptions: [] },
+    { name: "SUPW", subOptions: [] },
+    { name: "Work Education", subOptions: [] },
+];
 
   const getSubOptionsByName = (name) => {
     const found = initialSubjectsMasterList.find(s => s.name === name);
