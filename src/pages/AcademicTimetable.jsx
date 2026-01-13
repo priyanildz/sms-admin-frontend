@@ -4017,17 +4017,15 @@ import SelectField from "../components/SelectField";
 import { API_BASE_URL } from '../config'; 
 
 const FIXED_PERIOD_STRUCTURE = [
-  { num: 1, time: "07:00-08:00", type: "Period", isBreak: false }, 
-  { num: null, time: "08:00-08:05", type: "Break", isBreak: true },
-  { num: 2, time: "08:05-08:55", type: "Period", isBreak: false },
-  { num: null, time: "08:55-09:00", type: "Break", isBreak: true },
-  { num: 3, time: "09:00-09:50", type: "Period", isBreak: false },
-  { num: null, time: "09:50-10:10", type: "Lunch / Recess", isBreak: true },
-  { num: 4, time: "10:10-11:00", type: "Period", isBreak: false },
-  { num: null, time: "11:00-11:05", type: "Break", isBreak: true }, 
-  { num: 6, time: "11:05-11:55", type: "Period", isBreak: false },
-  { num: null, time: "11:55-12:00", type: "Break", isBreak: true }, 
-  { num: 7, time: "12:00-01:00", type: "Period", isBreak: false }, 
+  { num: 1, time: "08:00-08:30", type: "Period", isBreak: false },
+  { num: 2, time: "08:30-09:00", type: "Period", isBreak: false },
+  { num: 3, time: "09:00-09:30", type: "Period", isBreak: false },
+  { num: 4, time: "09:30-10:00", type: "Period", isBreak: false },
+  { num: null, time: "10:00-10:20", type: "Breakfast Break", isBreak: true }, // 20 min break after 4 lecs
+  { num: 5, time: "10:20-10:50", type: "Period", isBreak: false },
+  { num: 6, time: "10:50-11:20", type: "Period", isBreak: false },
+  { num: 7, time: "11:20-11:50", type: "Period", isBreak: false },
+  { num: 8, time: "11:50-12:20", type: "Period", isBreak: false },
 ];
 
 const AUTH_HEADER = 'ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=';
@@ -4044,10 +4042,10 @@ const AcademicTimetable = () => {
   const [error, setError] = useState("");
   const [selectedStandardToPublish, setSelectedStandardToPublish] = useState('');
   const [standard, setStandard] = useState("");
-  const [timing, setTiming] = useState("07:00 - 12:55"); 
+  const [timing, setTiming] = useState("08:00 - 12:20"); 
 
   const stdOptions = ["Select Standard", "Nursery", "Junior", "Senior", "1","2","3","4","5","6","7","8","9","10"];
-  const timingOptions = ["07:00 - 12:55"]; 
+  const timingOptions = ["08:00 - 12:20"]; 
   
   const availableStandards = useMemo(() => {
       const data = timetableData || []; 
@@ -4276,7 +4274,7 @@ const AcademicTimetable = () => {
                                 <SelectField label="Timing" options={timingOptions} value={timing} onChange={(v) => setTiming(v)} />
                             </div>
                             <div className="flex justify-end gap-4 mt-6">
-                                <button onClick={() => { setIsModalOpen(false); setStandard(""); setTiming("07:00 - 12:55"); }} className="px-4 py-2 border border-gray-300 rounded text-gray-600">Cancel</button>
+                                <button onClick={() => { setIsModalOpen(false); setStandard(""); setTiming("08:00 - 12:20"); }} className="px-4 py-2 border border-gray-300 rounded text-gray-600">Cancel</button>
                                 <button onClick={createTimetable} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={!standard || standard === "Select Standard" || !timing || loading}>{loading ? 'Generating All...' : 'Generate Timetables'}</button>
                             </div>
                         </div>
