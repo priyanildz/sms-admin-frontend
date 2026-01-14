@@ -617,21 +617,20 @@
 //     </MainLayout>
 //   );
 // }
-
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Modal from "react-modal";
-// --- Import the API Base URL from the config file (Assumed Import) ---
 import { API_BASE_URL } from '../config'; 
 
 Modal.setAppElement("#root");
 
 export default function StaffTimetable() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterSubject, setFilterSubject] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
   const [timetableData, setTimetableData] = useState([]);
   const [teachersData, setTeachersData] = useState({}); 
@@ -648,33 +647,15 @@ export default function StaffTimetable() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch timetables
-        const timetableResponse = await axios.get(
-          `${API_BASE_URL}api/timetables`, 
-          {
-            headers: { auth: AUTH_HEADER },
-          }
-        );
+        const timetableResponse = await axios.get(`${API_BASE_URL}api/timetables`, { headers: { auth: AUTH_HEADER } });
         setTimetableData(timetableResponse.data);
 
-        // Fetch teachers
-        const teachersResponse = await axios.get(
-          `${API_BASE_URL}api/staff`, 
-          {
-            headers: { auth: AUTH_HEADER },
-          }
-        );
+        const teachersResponse = await axios.get(`${API_BASE_URL}api/staff`, { headers: { auth: AUTH_HEADER } });
         const teachersMap = {};
-        teachersResponse.data.forEach((t) => {
-          teachersMap[t._id] = t;
-        });
+        teachersResponse.data.forEach((t) => { teachersMap[t._id] = t; });
         setTeachersData(teachersMap);
       } catch (err) {
-        if (err.response && err.response.status === 404) {
-          setError("Failed to fetch data: Resource Not Found (404). Check API endpoint.");
-        } else {
-          setError("Failed to fetch data: " + err.message);
-        }
+        setError(err.response && err.response.status === 404 ? "Failed to fetch data: Resource Not Found (404)." : "Failed to fetch data: " + err.message);
       } finally {
         setLoading(false);
       }
@@ -683,22 +664,10 @@ export default function StaffTimetable() {
   }, [retry]);
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
-  const handleRetry = () => setRetry((prev) => prev + 1);
 
-//   const handleViewTimetable = (item) => {
-//     setSelectedTimetable(item.timetable);
-//     const teacher = teachersData[item.classteacher];
-//     setSelectedTimetableInfo({ 
-//       standard: item.standard, 
-//       division: item.division,
-//       teacherName: teacher ? `${teacher.firstname} ${teacher.lastname}` : "N/A"
-//     });
-//   };
-
-// Change your handleViewTimetable function or the onClick event
-const handleViewTimetable = (item) => {
-    navigate(`/view-teacher-timetable/${item._id}`);
-};
+  const handleViewTimetable = (item) => {
+    navigate(`/view-teacher-timetable/${item.teacherId}`);
+  };
 
   const closeModal = () => {
     setSelectedTimetable(null);
@@ -724,9 +693,7 @@ const handleViewTimetable = (item) => {
   const getAllPeriods = () => {
     if (!selectedTimetable) return [];
     const periodsSet = new Set();
-    selectedTimetable.forEach((day) =>
-      day.periods.forEach((p) => periodsSet.add(p.periodNumber))
-    );
+    selectedTimetable.forEach((day) => day.periods.forEach((p) => periodsSet.add(p.periodNumber)));
     return Array.from(periodsSet).sort((a, b) => a - b);
   };
 
@@ -740,76 +707,82 @@ const handleViewTimetable = (item) => {
     return "N/A";
   };
 
-  // Get all teachers from the staff data
-  // Get all teachers from the staff data
   const teachersList = Object.values(teachersData);
 
-  const filteredData = teachersList
-    .filter((teacher) => {
-      const teacherName = `${teacher.firstname} ${teacher.lastname}`.toLowerCase();
-      const category = teacher?.role?.preferredgrades?.join(", ").toLowerCase() || "";
-      
-      // 🚀 Identify if the teacher has ANY assignment in the school
-      const isClassTeacher = timetableData.some(tt => tt.classteacher === teacher._id);
-      const isSubjectTeacher = timetableData.some(tt => 
-        tt.timetable.some(day => 
-          day.periods.some(p => p.teacher === teacher._id)
-        )
-      );
+  // 🚀 Process data to get subjects and filter based on Allotment, Category, Subject, and Search
+  const filteredData = useMemo(() => {
+    return teachersList
+      .map(teacher => {
+        const subjects = [];
+        timetableData.forEach(tt => {
+          tt.timetable.forEach(day => {
+            day.periods.forEach(p => {
+              if (p.teacher === teacher._id && p.subject !== "Empty" && p.subject !== "Class Teacher Period") {
+                subjects.push(p.subject);
+              }
+            });
+          });
+        });
 
-      const hasAssignment = isClassTeacher || isSubjectTeacher;
-      const matchesSearch = teacherName.includes(searchQuery.toLowerCase()) ||
-                            category.includes(searchQuery.toLowerCase());
+        const uniqueSubjects = [...new Set(subjects)];
+        
+        return {
+          teacherId: teacher._id,
+          name: `${teacher.firstname} ${teacher.lastname}`,
+          category: teacher?.role?.preferredgrades?.join(", ") || "N/A",
+          subjectList: uniqueSubjects,
+          subjectString: uniqueSubjects.join(", ") || "N/A",
+        };
+      })
+      .filter(item => {
+        const hasAllotment = item.subjectList.length > 0;
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = filterCategory === "" || item.category.includes(filterCategory);
+        const matchesSubject = filterSubject === "" || item.subjectList.includes(filterSubject);
 
-      return hasAssignment && matchesSearch;
-    })
-    .map(teacher => {
-      // 🚀 Collect ALL Standards and Divisions where this teacher appears
-      const assignments = [];
-
-      timetableData.forEach(tt => {
-        const isCT = tt.classteacher === teacher._id;
-        const teachesSubject = tt.timetable.some(day => 
-          day.periods.some(p => p.teacher === teacher._id)
-        );
-
-        if (isCT || teachesSubject) {
-          assignments.push(`${tt.standard}-${tt.division}`);
-        }
+        return hasAllotment && matchesSearch && matchesCategory && matchesSubject;
       });
+  }, [teachersList, timetableData, searchQuery, filterCategory, filterSubject]);
 
-      // Remove duplicates and format as a string
-      const uniqueAssignments = [...new Set(assignments)];
-      const stdList = uniqueAssignments.map(a => a.split('-')[0]);
-      const divList = uniqueAssignments.map(a => a.split('-')[1]);
-
-      return {
-        teacherId: teacher._id,
-        name: `${teacher.firstname} ${teacher.lastname}`,
-        category: teacher?.role?.preferredgrades?.join(", ") || "N/A",
-        // 🚀 Show specific standards and divisions instead of generic labels
-        std: [...new Set(stdList)].join(", ") || "N/A",
-        div: [...new Set(divList)].join(", ") || "N/A",
-        viewId: teacher._id 
-      };
-    });
+  // Extract unique subjects and categories for dropdowns
+  const uniqueCategories = [...new Set(teachersList.flatMap(t => t.role?.preferredgrades || []))];
+  const allAssignedSubjects = [...new Set(timetableData.flatMap(tt => tt.timetable.flatMap(d => d.periods.filter(p => p.subject !== "Empty" && p.subject !== "Class Teacher Period").map(p => p.subject))))];
 
   return (
     <MainLayout>
       <div className="bg-white rounded-2xl shadow p-6">
         <div className="flex flex-col flex-1 p-4 sm:p-6 overflow-y-auto">
           {!isPublishing && (
-            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="mb-4 flex flex-wrap items-center gap-4">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                placeholder="Search..."
-                className="w-full sm:w-72 px-3 py-2 rounded-md border border-gray-300 text-sm"
+                placeholder="Search Name..."
+                className="w-full sm:w-64 px-3 py-2 rounded-md border border-gray-300 text-sm"
               />
+              
+              <select 
+                value={filterCategory} 
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="px-3 py-2 rounded-md border border-gray-300 text-sm bg-white min-w-[150px]"
+              >
+                <option value="">All Categories</option>
+                {uniqueCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+
+              <select 
+                value={filterSubject} 
+                onChange={(e) => setFilterSubject(e.target.value)}
+                className="px-3 py-2 rounded-md border border-gray-300 text-sm bg-white min-w-[150px]"
+              >
+                <option value="">All Subjects</option>
+                {allAssignedSubjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+              </select>
+
               <button
                 disabled
-                className="w-full sm:w-auto px-4 py-2 bg-gray-400 text-white rounded-md cursor-not-allowed"
+                className="ml-auto px-4 py-2 bg-gray-400 text-white rounded-md cursor-not-allowed"
               >
                 Edit
               </button>
@@ -820,17 +793,7 @@ const handleViewTimetable = (item) => {
             <h2 className="text-xl font-semibold text-gray-800">Timetable</h2>
           </div>
 
-          {error && (
-            <div className="text-red-500 mb-4 flex justify-between items-center">
-              {error}
-              <button
-                onClick={handleRetry}
-                className="ml-4 px-2 py-1 bg-gray-300 rounded-md text-sm hover:bg-gray-400"
-              >
-                Retry
-              </button>
-            </div>
-          )}
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           {loading && (
             <div className="text-gray-500 mb-4 flex justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
@@ -843,121 +806,31 @@ const handleViewTimetable = (item) => {
                 <tr>
                   <th className="border px-2 sm:px-4 py-2 text-center">Name</th>
                   <th className="border px-2 sm:px-4 py-2 text-center">Category</th>
-                  <th className="border px-2 sm:px-4 py-2 text-center">Std</th>
-                  <th className="border px-2 sm:px-4 py-2 text-center">Div</th>
+                  <th className="border px-2 sm:px-4 py-2 text-center">Subject</th>
                   <th className="border px-2 sm:px-4 py-2 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white">
-  {filteredData.map((item) => {
-    return (
-      <tr key={item.teacherId} className="border-b border-gray-200 hover:bg-gray-50">
-        <td className="px-2 border sm:px-4 py-2 text-center">
-          {item.name}
-        </td>
-        <td className="px-2 border sm:px-4 py-2 text-center">
-          {item.category}
-        </td>
-        <td className="px-2 border sm:px-4 py-2 text-center">
-          {item.std}
-        </td>
-        <td className="px-2 border sm:px-4 py-2 text-center">
-          {item.div}
-        </td>
-        <td className="px-2 border sm:px-4 py-2 text-center">
-          <button
-            className="text-blue-600 hover:underline mr-2"
-            onClick={() => navigate(`/view-teacher-timetable/${item.teacherId}`)}
-          >
-            View
-          </button>
-        </td>
-      </tr>
-    );
-  })}
-  {filteredData.length === 0 && (
-    <tr>
-      <td colSpan={5} className="text-center py-4 text-gray-500">
-        No teachers found
-      </td>
-    </tr>
-  )}
-</tbody>
+                {filteredData.map((item) => (
+                  <tr key={item.teacherId} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="px-2 border sm:px-4 py-2 text-center">{item.name}</td>
+                    <td className="px-2 border sm:px-4 py-2 text-center">{item.category}</td>
+                    <td className="px-2 border sm:px-4 py-2 text-center">{item.subjectString}</td>
+                    <td className="px-2 border sm:px-4 py-2 text-center">
+                      <button className="text-blue-600 hover:underline" onClick={() => handleViewTimetable(item)}>
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredData.length === 0 && !loading && (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-gray-500">No teachers found</td>
+                  </tr>
+                )}
+              </tbody>
             </table>
           </div>
-
-          <Modal
-            isOpen={!!selectedTimetable}
-            onRequestClose={closeModal}
-            style={{
-              content: {
-                top: "50%",
-                left: "50%",
-                right: "auto",
-                bottom: "auto",
-                transform: "translate(-50%, -50%)",
-                width: "95%",
-                maxWidth: "1200px",
-                maxHeight: "100vh",
-                overflow: "hidden",
-                padding: "0",
-                borderRadius: "12px",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-              },
-              overlay: { backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000 },
-            }}
-          >
-            <div className="flex flex-col h-full">
-              <div className="flex justify-between items-center p-4 border-b bg-blue-500 text-white rounded-t-md">
-                <h2 className="font-semibold text-lg">
-                  Timetable - {selectedTimetableInfo?.teacherName} (Std {selectedTimetableInfo?.standard}, Div {selectedTimetableInfo?.division})
-                </h2>
-                <button
-                  onClick={closeModal}
-                  className="text-white px-3 py-1 rounded hover:bg-red-600 bg-red-500"
-                >
-                  ✕ Close
-                </button>
-              </div>
-
-              <div className="overflow-auto flex-1">
-                <table className="min-w-full border-collapse">
-                  <thead>
-                    <tr className="bg-blue-100 text-gray-800 sticky top-0">
-                      <th className="border px-4 py-2 text-left">Time</th>
-                      {daysOfWeek.map((day) => (
-                        <th key={day} className="border px-4 py-2 text-center">{day}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getAllPeriods().map((periodNumber) => (
-                      <tr key={periodNumber} className="hover:bg-gray-50">
-                        <td className="border px-4 py-2 font-medium bg-gray-50">
-                          {getTimeForPeriod(periodNumber)}
-                        </td>
-                        {daysOfWeek.map((day) => {
-                          const { subject, teacher } = getSubjectForDayAndPeriod(day, periodNumber);
-                          return (
-                            <td key={`${day}-${periodNumber}`} className="border px-4 py-2 text-center">
-                              {subject ? (
-                                <div>
-                                  <div className="font-medium text-gray-800">{subject}</div>
-                                  <div className="text-xs text-gray-600 mt-1">{teacher}</div>
-                                </div>
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </Modal>
         </div>
       </div>
     </MainLayout>

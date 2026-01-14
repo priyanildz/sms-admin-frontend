@@ -58,70 +58,81 @@ export default function ViewTeacherTimetable() {
     return (!value || value === '-') ? 'Free Lecture' : value;
 };
 
-    if (loading) return <MainLayout><div className="p-10 text-center italic text-blue-500">Loading Teacher Timetable...</div></MainLayout>;
     if (error) return <MainLayout><div className="p-10 text-center text-red-500">Error: {error}</div></MainLayout>;
 
     return (
         <MainLayout>
-            <div className="bg-white rounded-2xl shadow p-8">
+            <div className="bg-white rounded-2xl shadow p-8 min-h-[500px]">
+                {/* 🚀 These static elements will now stay visible during loading */}
                 <button onClick={() => navigate(-1)} className="mb-6 text-blue-600 hover:underline">← Back</button>
                 
                 <div className="text-center mb-6">
                     <h2 className="text-xl font-semibold text-gray-800">Timetable</h2>
                 </div>
 
-                <div className="flex items-center gap-8 mb-10 mt-10">
-                    <span className="text-xl font-semibold text-gray-700 whitespace-nowrap">Full Name </span>
-                    <div className="flex gap-4">
-                        <div className="border border-black px-6 py-2 rounded shadow-sm bg-blue-50 min-w-[250px] text-center font-medium">
-                            {teacher?.firstname || "First Name"}
-                        </div>
-                        <div className="border border-black px-6 py-2 rounded shadow-sm bg-blue-50 min-w-[250px] text-center font-medium">
-                            {teacher?.middlename || "Middle Name"}
-                        </div>
-                        <div className="border border-black px-6 py-2 rounded shadow-sm bg-blue-50 min-w-[250px] text-center font-medium">
-                            {teacher?.lastname || "Last Name"}
-                        </div>
+                {loading ? (
+                    /* 🚀 Loading state inside the card to prevent blank page */
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                        <div className="text-blue-500 italic font-medium">Loading Teacher Timetable...</div>
                     </div>
-                </div>
+                ) : (
+                    /* 🚀 Main content rendered only after loading is complete */
+                    <>
+                        <div className="flex items-center gap-8 mb-10 mt-10">
+                            <span className="text-xl font-semibold text-gray-700 whitespace-nowrap">Full Name </span>
+                            <div className="flex gap-4">
+                                <div className="border border-black px-6 py-2 rounded shadow-sm bg-blue-50 min-w-[250px] text-center font-medium">
+                                    {teacher?.firstname || "First Name"}
+                                </div>
+                                <div className="border border-black px-6 py-2 rounded shadow-sm bg-blue-50 min-w-[250px] text-center font-medium">
+                                    {teacher?.middlename || "Middle Name"}
+                                </div>
+                                <div className="border border-black px-6 py-2 rounded shadow-sm bg-blue-50 min-w-[250px] text-center font-medium">
+                                    {teacher?.lastname || "Last Name"}
+                                </div>
+                            </div>
+                        </div>
 
-                <div className="overflow-x-auto border border-gray-300 rounded-lg shadow-sm">
-                    <table className="min-w-full border-collapse">
-                        <thead className="bg-blue-100 text-gray-800">
-                            <tr>
-                                <th className="border border-gray-300 px-4 py-3 text-left font-bold">Timings</th>
-                                {daysOfWeek.map(day => (
-                                    <th key={day} className="border border-gray-300 px-4 py-3 text-center font-bold">{day}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {timetableData.length === 0 ? (
-                                <tr>
-                                    <td colSpan="7" className="p-10 text-center text-gray-400 italic">No schedule found for this teacher.</td>
-                                </tr>
-                            ) : (
-                                timetableData.map((row, idx) => (
-                                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                        <td className="border border-gray-300 px-4 py-3 font-bold bg-blue-50 text-blue-900 whitespace-nowrap">
-                                            {row.time || 'N/A'}
-                                        </td>
-                                        {daysOfWeek.map(day => {
-                                            const cellContent = getDayClass(row, day);
-                                            return (
-                                                <td key={`${day}-${idx}`} className="border border-gray-300 px-4 py-3 text-center">
-                                                    <span className={cellContent === "Free Lecture" ? "text-red-400 italic text-x" : "font-semibold text-blue-700"}>
-                                                        {cellContent}
-                                                    </span>
-                                                </td>
-                                            );
-                                        })}
+                        <div className="overflow-x-auto border border-gray-300 rounded-lg shadow-sm">
+                            <table className="min-w-full border-collapse">
+                                <thead className="bg-blue-100 text-gray-800">
+                                    <tr>
+                                        <th className="border border-gray-300 px-4 py-3 text-left font-bold">Timings</th>
+                                        {daysOfWeek.map(day => (
+                                            <th key={day} className="border border-gray-300 px-4 py-3 text-center font-bold">{day}</th>
+                                        ))}
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                </thead>
+                                <tbody>
+                                    {timetableData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="7" className="p-10 text-center text-gray-400 italic">No schedule found for this teacher.</td>
+                                        </tr>
+                                    ) : (
+                                        timetableData.map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                                <td className="border border-gray-300 px-4 py-3 font-bold bg-blue-50 text-blue-900 whitespace-nowrap">
+                                                    {row.time || 'N/A'}
+                                                </td>
+                                                {daysOfWeek.map(day => {
+                                                    const cellContent = getDayClass(row, day);
+                                                    return (
+                                                        <td key={`${day}-${idx}`} className="border border-gray-300 px-4 py-3 text-center">
+                                                            <span className={cellContent === "Free Lecture" ? "text-red-400 italic" : "font-semibold text-blue-700"}>
+                                                                {cellContent}
+                                                            </span>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
             </div>
         </MainLayout>
     );
