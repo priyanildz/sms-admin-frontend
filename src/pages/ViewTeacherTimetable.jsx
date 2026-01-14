@@ -17,35 +17,33 @@ export default function ViewTeacherTimetable() {
     const [error, setError] = useState(null);
 
     const fetchTeacherDetailsAndTimetable = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const ttRes = await axios.get(`${API_BASE_URL}api/timetables`, { headers: { auth: AUTH_HEADER } });
-            const selectedTTDoc = ttRes.data.find(t => t._id === id);
-            
-            if (selectedTTDoc && selectedTTDoc.classteacher) {
-                const staffDetailsRes = await axios.get(`${API_BASE_URL}api/staff/${selectedTTDoc.classteacher}`, { 
-                    headers: { auth: AUTH_HEADER } 
-                });
-                const staffInfo = staffDetailsRes.data;
-                setTeacher(staffInfo);
+    setLoading(true);
+    setError(null);
+    try {
+        // Step 1: Fetch Staff by MongoDB _id (Standard findById)
+        const staffDetailsRes = await axios.get(`${API_BASE_URL}api/staff/${id}`, { 
+            headers: { auth: AUTH_HEADER } 
+        });
+        const staffInfo = staffDetailsRes.data;
+        
+        if (!staffInfo) throw new Error("Staff member not found.");
+        setTeacher(staffInfo);
 
-                if (staffInfo.staffid) {
-                    const teacherTimetableRes = await axios.get(`${API_BASE_URL}api/staff/${staffInfo.staffid}/timetable`, {
-                        headers: { auth: AUTH_HEADER }
-                    });
-                    setTimetableData(teacherTimetableRes.data || []);
-                }
-            } else {
-                throw new Error("Timetable or Class Teacher reference not found.");
-            }
-        } catch (err) {
-            console.error("Error loading view details:", err);
-            setError(err.response?.data?.message || err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
+        // Step 2: IMPORTANT - Use the staffid (string) or the Mongo _id 
+        // depending on how your backend getStaffTimetable is written.
+        // Based on your controller, it expects staffid.
+        const teacherTimetableRes = await axios.get(`${API_BASE_URL}api/staff/${staffInfo.staffid}/timetable`, {
+            headers: { auth: AUTH_HEADER }
+        });
+        
+        setTimetableData(teacherTimetableRes.data || []);
+
+    } catch (err) {
+        setError(err.response?.data?.message || err.message);
+    } finally {
+        setLoading(false);
+    }
+}, [id]);
 
     useEffect(() => {
         fetchTeacherDetailsAndTimetable();
@@ -53,11 +51,12 @@ export default function ViewTeacherTimetable() {
 
     // Helper to extract the day's class and handle empty slots
     const getDayClass = (row, day) => {
-        const propName = day.substring(0, 3); 
-        // 🚀 CHANGE: Return "Free Lecture" if the slot is empty or contains "-"
-        const value = row[propName];
-        return (!value || value === '-') ? 'Free Lecture' : value;
-    };
+    // row is { time: "08:00-08:30", Mon: "English (1B)", ... }
+    const dayKey = day.substring(0, 3); // Converts "Monday" to "Mon"
+    const value = row[dayKey];
+    
+    return (!value || value === '-') ? 'Free Lecture' : value;
+};
 
     if (loading) return <MainLayout><div className="p-10 text-center italic text-blue-500">Loading Teacher Timetable...</div></MainLayout>;
     if (error) return <MainLayout><div className="p-10 text-center text-red-500">Error: {error}</div></MainLayout>;

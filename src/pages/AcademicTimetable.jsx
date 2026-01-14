@@ -4010,7 +4010,6 @@
 // };
 
 // export default AcademicTimetable;
-
 import React, { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layout/MainLayout"; 
 import SelectField from "../components/SelectField"; 
@@ -4169,7 +4168,7 @@ const AcademicTimetable = () => {
   const getScheduleGrid = (timetable) => {
       if (!timetable || !timetable.timetable) return [];
       return FIXED_PERIOD_STRUCTURE.map(p => {
-          const row = { time: p.time };
+          const row = { time: p.time, isRecess: p.type === "Breakfast Break" };
           WEEKDAYS_FULL.forEach((dayName) => {
               let content = { subject: '-', teacher: null, isBreak: false, isSundayHoliday: false };
               if (dayName === 'Sunday') { 
@@ -4228,15 +4227,23 @@ const AcademicTimetable = () => {
                                             {displayTimetable.map((row, rowIdx) => (
                                                 <tr key={rowIdx} className="hover:bg-gray-50">
                                                     <td className="px-4 py-3 border font-medium bg-gray-50 text-sm">{row.time}</td>
-                                                    {WEEKDAYS_FULL.map((dayName) => {
-                                                        const cell = row[dayName];
-                                                        if (cell.isSundayHoliday && rowIdx === 0) {
-                                                            return (<td key={dayName} rowSpan={TOTAL_PERIODS} className="border text-center align-middle font-bold bg-orange-300 text-orange-900" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: '18px', letterSpacing: '5px' }}>WEEKLY HOLIDAY</td>);
-                                                        }
-                                                        if (cell.isSundayHoliday) return null;
-                                                        const bg = cell.isBreak ? 'bg-gray-200 text-gray-800' : 'bg-blue-100 text-blue-800';
-                                                        return (<td key={dayName} className={`px-2 py-3 border text-center text-sm align-top ${cell.isBreak ? 'bg-gray-100' : ''}`}>{cell.subject !== '-' && <div className={`p-1 rounded ${bg} font-semibold leading-tight`}>{cell.subject}</div>}{cell.teacher && !cell.isBreak && <div className="mt-1 text-xs text-gray-600 font-medium italic">({cell.teacher})</div>}{cell.subject === '-' && <span className="text-gray-400">-</span>}</td>);
-                                                    })}
+                                                    
+                                                    {/* Check if this is the Recess row to span across all days except Sunday handling */}
+                                                    {row.isRecess ? (
+                                                        <td colSpan={WEEKDAYS_FULL.length} className="px-2 py-1 border border-gray-300 text-center text font-bold bg-gray-200 text-gray-800 tracking-[10px] uppercase">
+                                                            RECESS
+                                                        </td>
+                                                    ) : (
+                                                        WEEKDAYS_FULL.map((dayName) => {
+                                                            const cell = row[dayName];
+                                                            if (cell.isSundayHoliday && rowIdx === 0) {
+                                                                return (<td key={dayName} rowSpan={TOTAL_PERIODS} className="border text-center align-middle font-bold bg-orange-300 text-orange-900" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontSize: '18px', letterSpacing: '5px' }}>WEEKLY HOLIDAY</td>);
+                                                            }
+                                                            if (cell.isSundayHoliday) return null;
+                                                            const bg = cell.isBreak ? 'bg-gray-200 text-gray-800' : 'bg-blue-100 text-blue-800';
+                                                            return (<td key={dayName} className={`px-2 py-3 border text-center text-sm align-top ${cell.isBreak ? 'bg-gray-100' : ''}`}>{cell.subject !== '-' && <div className={`p-1 rounded ${bg} font-semibold leading-tight`}>{cell.subject}</div>}{cell.teacher && !cell.isBreak && <div className="mt-1 text-xs text-gray-600 font-medium italic">({cell.teacher})</div>}{cell.subject === '-' && <span className="text-gray-400">-</span>}</td>);
+                                                        })
+                                                    )}
                                                 </tr>
                                             ))}
                                         </tbody>

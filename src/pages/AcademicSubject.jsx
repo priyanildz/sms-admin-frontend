@@ -2606,6 +2606,7 @@
 //         </MainLayout>
 //     );
 // }
+
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import MainLayout from "../layout/MainLayout";
 import axios from "axios";
@@ -2738,16 +2739,24 @@ export default function AcademicSubject() {
     };
 
     const handleTeacherChange = (rowId, teacherId, value) => {
-        const teacher = teachers.find(t => `${t._id},${t.firstname} ${t.middlename} ${t.lastname}` === value);
-        if (teacher) {
-            setAllotmentRows(allotmentRows.map(row => 
-                row.id === rowId ? {
-                    ...row,
-                    teacherOptions: row.teacherOptions.map(tOpt => tOpt.id === teacherId ? { ...tOpt, teacher: { value, label: `${teacher.firstname} ${teacher.lastname}` } } : tOpt)
-                } : row
-            ));
-        }
-    };
+    // 🚀 FIXED: Find the teacher record to get the full name including middle name
+    const teacher = teachers.find(t => `${t._id},${t.firstname} ${t.middlename} ${t.lastname}` === value);
+    
+    if (teacher) {
+        const fullDisplayLabel = `${teacher.firstname} ${teacher.middlename} ${teacher.lastname}`;
+        setAllotmentRows(allotmentRows.map(row => 
+            row.id === rowId ? {
+                ...row,
+                teacherOptions: row.teacherOptions.map(tOpt => 
+                    tOpt.id === teacherId ? { 
+                        ...tOpt, 
+                        teacher: { value, label: fullDisplayLabel } 
+                    } : tOpt
+                )
+            } : row
+        ));
+    }
+};
 
     const tableGroups = useMemo(() => {
         const stdGroups = {};
@@ -2837,19 +2846,34 @@ export default function AcademicSubject() {
     };
 
     const handleEdit = (group) => {
-        setIsEditMode(true);
-        setSelectedStd(group.name);
-        const rows = Object.values(group.subjects).map(sub => ({
-            id: Date.now() + Math.random(),
-            subject: sub.name,
-            teacherOptions: sub.rawData.map(rd => ({
-                id: Date.now() + Math.random(),
-                teacher: { value: `${rd.teacher},${rd.teacherName}`, label: rd.teacherName }
-            }))
-        }));
-        setAllotmentRows(rows);
-        setShowModal(true);
-    };
+    setIsEditMode(true);
+    setSelectedStd(group.name);
+    
+    const rows = Object.values(group.subjects).map(sub => ({
+        id: Math.random(), 
+        subject: sub.name,
+        teacherOptions: sub.rawData.map(rd => {
+            // 🚀 FIND THE TEACHER OBJECT FIRST
+            // This ensures we use the exact data structure the <select> expects
+            const masterTeacher = teachers.find(t => t._id === rd.teacher);
+            
+            const teacherValue = masterTeacher 
+                ? `${masterTeacher._id},${masterTeacher.firstname} ${masterTeacher.middlename} ${masterTeacher.lastname}`
+                : `${rd.teacher},${rd.teacherName}`;
+
+            return {
+                id: Math.random(),
+                teacher: { 
+                    value: teacherValue, 
+                    label: rd.teacherName 
+                }
+            };
+        })
+    }));
+    
+    setAllotmentRows(rows);
+    setShowModal(true);
+};
 
     const handleDeleteGroup = async (groupName, ids) => {
         const displayStd = groupName + (isNaN(groupName) ? "" : " std");

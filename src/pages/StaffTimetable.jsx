@@ -740,22 +740,59 @@ const handleViewTimetable = (item) => {
     return "N/A";
   };
 
-  const uniqueTimetables = Array.from(
-    new Map(timetableData.map((item) => [`${item.standard}-${item.division}`, item])).values()
-  );
+  // Get all teachers from the staff data
+  // Get all teachers from the staff data
+  const teachersList = Object.values(teachersData);
 
-  const filteredData = uniqueTimetables.filter((item) => {
-    const teacher = teachersData[item.classteacher];
-    const teacherName = teacher ? `${teacher.firstname} ${teacher.lastname}`.toLowerCase() : "";
-    const category = teacher?.role?.preferredgrades?.join(", ").toLowerCase() || "";
-    
-    return (
-      item.standard.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.division.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      teacherName.includes(searchQuery.toLowerCase()) ||
-      category.includes(searchQuery.toLowerCase())
-    );
-  });
+  const filteredData = teachersList
+    .filter((teacher) => {
+      const teacherName = `${teacher.firstname} ${teacher.lastname}`.toLowerCase();
+      const category = teacher?.role?.preferredgrades?.join(", ").toLowerCase() || "";
+      
+      // 🚀 Identify if the teacher has ANY assignment in the school
+      const isClassTeacher = timetableData.some(tt => tt.classteacher === teacher._id);
+      const isSubjectTeacher = timetableData.some(tt => 
+        tt.timetable.some(day => 
+          day.periods.some(p => p.teacher === teacher._id)
+        )
+      );
+
+      const hasAssignment = isClassTeacher || isSubjectTeacher;
+      const matchesSearch = teacherName.includes(searchQuery.toLowerCase()) ||
+                            category.includes(searchQuery.toLowerCase());
+
+      return hasAssignment && matchesSearch;
+    })
+    .map(teacher => {
+      // 🚀 Collect ALL Standards and Divisions where this teacher appears
+      const assignments = [];
+
+      timetableData.forEach(tt => {
+        const isCT = tt.classteacher === teacher._id;
+        const teachesSubject = tt.timetable.some(day => 
+          day.periods.some(p => p.teacher === teacher._id)
+        );
+
+        if (isCT || teachesSubject) {
+          assignments.push(`${tt.standard}-${tt.division}`);
+        }
+      });
+
+      // Remove duplicates and format as a string
+      const uniqueAssignments = [...new Set(assignments)];
+      const stdList = uniqueAssignments.map(a => a.split('-')[0]);
+      const divList = uniqueAssignments.map(a => a.split('-')[1]);
+
+      return {
+        teacherId: teacher._id,
+        name: `${teacher.firstname} ${teacher.lastname}`,
+        category: teacher?.role?.preferredgrades?.join(", ") || "N/A",
+        // 🚀 Show specific standards and divisions instead of generic labels
+        std: [...new Set(stdList)].join(", ") || "N/A",
+        div: [...new Set(divList)].join(", ") || "N/A",
+        viewId: teacher._id 
+      };
+    });
 
   return (
     <MainLayout>
@@ -812,35 +849,40 @@ const handleViewTimetable = (item) => {
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {filteredData.map((item) => {
-                  const teacher = teachersData[item.classteacher];
-                  return (
-                    <tr key={`${item.standard}-${item.division}`} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-2 border sm:px-4 py-2 text-center">
-                        {teacher ? `${teacher.firstname} ${teacher.lastname}` : "N/A"}
-                      </td>
-                      <td className="px-2 border sm:px-4 py-2 text-center">
-                        {teacher?.role?.preferredgrades?.join(", ") || "N/A"}
-                      </td>
-                      <td className="px-2 border sm:px-4 py-2 text-center">{item.standard}</td>
-                      <td className="px-2 border sm:px-4 py-2 text-center">{item.division}</td>
-                      <td className="px-2 border sm:px-4 py-2 text-center">
-                        <button
-                          className="text-blue-600 hover:underline mr-2"
-                          onClick={() => handleViewTimetable(item)}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {filteredData.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="text-center py-4 text-gray-500">No timetables found</td>
-                  </tr>
-                )}
-              </tbody>
+  {filteredData.map((item) => {
+    return (
+      <tr key={item.teacherId} className="border-b border-gray-200 hover:bg-gray-50">
+        <td className="px-2 border sm:px-4 py-2 text-center">
+          {item.name}
+        </td>
+        <td className="px-2 border sm:px-4 py-2 text-center">
+          {item.category}
+        </td>
+        <td className="px-2 border sm:px-4 py-2 text-center">
+          {item.std}
+        </td>
+        <td className="px-2 border sm:px-4 py-2 text-center">
+          {item.div}
+        </td>
+        <td className="px-2 border sm:px-4 py-2 text-center">
+          <button
+            className="text-blue-600 hover:underline mr-2"
+            onClick={() => navigate(`/view-teacher-timetable/${item.teacherId}`)}
+          >
+            View
+          </button>
+        </td>
+      </tr>
+    );
+  })}
+  {filteredData.length === 0 && (
+    <tr>
+      <td colSpan={5} className="text-center py-4 text-gray-500">
+        No teachers found
+      </td>
+    </tr>
+  )}
+</tbody>
             </table>
           </div>
 
