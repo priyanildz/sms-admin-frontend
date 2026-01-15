@@ -3020,6 +3020,7 @@
 //         </MainLayout>
 //     );
 // }
+
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import MainLayout from "../layout/MainLayout";
 import axios from "axios";
@@ -3034,7 +3035,7 @@ export default function AcademicSubject() {
     const [subjectData, setSubjectData] = useState([]); 
     const [teachers, setTeachers] = useState([]); 
     const [isLoading, setIsLoading] = useState(false);
-    const [isSaving, setIsSaving] = useState(false); // 🚀 NEW: State for button loading
+    const [isSaving, setIsSaving] = useState(false); // 🚀 State for button loading
 
     const [showModal, setShowModal] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -3213,23 +3214,22 @@ export default function AcademicSubject() {
         }
 
         try {
+            // 🚀 STEP 1: Handle Deletions if in Edit Mode
             if (isEditMode) {
                 const group = tableGroups.find(g => g.name === selectedStd);
                 if (group) {
-                    // 🚀 FIXED: Added safety catch for 404s during deletion
-                    for (const id of group.allIds) {
-                        try {
-                            await axios.delete(`${API_BASE_URL}api/allotments/${id}`, config);
-                        } catch (err) {
-                            console.warn(`Record ${id} not found on server, skipping delete.`);
-                        }
-                    }
+                    // Use settled to ignore 404s and proceed with batch
+                    await Promise.allSettled(group.allIds.map(id => 
+                        axios.delete(`${API_BASE_URL}api/allotments/${id}`, config)
+                    ));
                 }
             }
 
+            // 🚀 STEP 2: Collect and execute all POST requests in parallel for speed
+            const postRequests = [];
             for (const row of allotmentRows) {
                 const selectedTeachers = row.teacherOptions.filter(t => t.teacher !== null);
-                for (const tOpt of selectedTeachers) {
+                selectedTeachers.forEach(tOpt => {
                     const payload = {
                         teacher: tOpt.teacher.value.split(',')[0],
                         teacherName: tOpt.teacher.label,
@@ -3237,9 +3237,11 @@ export default function AcademicSubject() {
                         standards: [selectedStd],
                         divisions: DIVISION_OPTIONS,
                     };
-                    await axios.post(`${API_BASE_URL}api/allot-subject`, payload, config);
-                }
+                    postRequests.push(axios.post(`${API_BASE_URL}api/allot-subject`, payload, config));
+                });
             }
+            
+            await Promise.all(postRequests);
             
             alert(isEditMode ? `subjects successfully updated for ${displayStd}` : `subjects successfully alloted for ${displayStd}`);
             resetFormState(); 
@@ -3334,7 +3336,7 @@ export default function AcademicSubject() {
                         <button 
                             type="submit" 
                             disabled={isSaving}
-                            className={`${isSaving ? 'bg-blue-300' : 'bg-blue-500'} text-white px-6 py-2 rounded-md transition-all`}
+                            className={`${isSaving ? 'bg-blue-300' : 'bg-blue-500'} text-white px-6 py-2 rounded-md transition-all min-w-[100px]`}
                         >
                             {isSaving ? 'Save...' : 'Save'}
                         </button>
