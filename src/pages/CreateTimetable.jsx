@@ -1252,7 +1252,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate } from "react-router-dom";
@@ -1307,56 +1306,56 @@ const CreateTimetable = () => {
 
   // MODIFIED: Function to get subjects from state
   const getAvailableSubjects = () => {
-    return availableSubjects;
+    return availableSubjects || [];
   };
 
   // NEW HOOK: Fetch subjects when standard changes
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      const std = formData.standard;
-      setFormData((prev) => ({ ...prev, subjects: [] }));
-      setAvailableSubjects([]);
-      setErrors((prev) => ({ ...prev, subjects: "", fetchSubjects: "" }));
+useEffect(() => {
+  const fetchSubjects = async () => {
+    const std = formData.standard;
+    setFormData((prev) => ({ ...prev, subjects: [] }));
+    setAvailableSubjects([]);
+    setErrors((prev) => ({ ...prev, subjects: "", fetchSubjects: "" }));
 
-      if (!std) return;
+    if (!std) return;
 
-      try {
-        // Fetch subjects from the API endpoint
-        const response = await axios.get(
-          `${API_BASE_URL}api/subjects/${std}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              auth: AUTH_HEADER,
-            },
-          }
-        );
-
-        // FIX: Mapping the correct structure from the backend
-        // Backend returns: { subjects: [ { subjectname: ["Math", "English"], ... } ] }
-        const subjectList = response.data.subjects?.length > 0 
-          ? response.data.subjects[0].subjectname 
-          : [];
-          
-        setAvailableSubjects(subjectList);
-        
-        if (subjectList.length === 0) {
-          setErrors((prev) => ({ ...prev, fetchSubjects: `No subjects defined for Standard ${std}.` }));
-        } else {
-          setErrors((prev) => ({ ...prev, fetchSubjects: "" }));
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}api/subjects/${std}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            auth: AUTH_HEADER,
+          },
         }
+      );
 
-      } catch (error) {
-        console.error("Error fetching subjects:", error);
-        setErrors((prev) => ({
-          ...prev,
-          fetchSubjects: "Failed to load subjects. Check server logs.",
-        }));
+      // 🚀 FIXED: Mapping logic to match the database structure shown in image_7ae369.png
+      // Your DB structure is subjects: [{ name: "English", ... }, { name: "Hindi", ... }]
+      const rawSubjects = response.data?.subjects?.[0]?.subjects || [];
+      
+      // Extract only the 'name' string from each subject object
+      const subjectList = rawSubjects.map(sub => sub.name);
+        
+      setAvailableSubjects(subjectList);
+      
+      if (subjectList.length === 0) {
+        setErrors((prev) => ({ ...prev, fetchSubjects: `No subjects defined for Standard ${std}.` }));
+      } else {
+        setErrors((prev) => ({ ...prev, fetchSubjects: "" }));
       }
-    };
 
-    fetchSubjects();
-  }, [formData.standard]);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+      setErrors((prev) => ({
+        ...prev,
+        fetchSubjects: "Failed to load subjects. Check server logs.",
+      }));
+    }
+  };
+
+  fetchSubjects();
+}, [formData.standard]);
 
   const getTodayDate = () => {
     const today = new Date();
@@ -1365,31 +1364,34 @@ const CreateTimetable = () => {
   
   // NEW UTILITY: Format date to get short day name
   const formatDay = (dateString) => {
-    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+    try {
+        return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+    } catch (e) {
+        return "N/A";
+    }
   };
 
 
   const generateTimetablePreview = () => {
-    if (!formData.startdate || !formData.subjects.length) {
+    // 🚀 FIXED: Added check for subjects.length to prevent processing empty arrays
+    if (!formData.startdate || !formData.subjects || formData.subjects.length === 0) {
       return [];
     }
 
     const timetable = [];
-    // IMPORTANT: Ensure the date string is interpreted as UTC to avoid timezone issues when setting date in local context
     let currentDate = new Date(formData.startdate + 'T00:00:00'); 
-    const gapDays = parseInt(formData.examgap.split(" ")[0]) || 0;
+    const gapDays = parseInt(formData.examgap?.split(" ")[0]) || 0;
 
     formData.subjects.forEach((subject) => {
       const dateString = currentDate.toISOString().split("T")[0];
       timetable.push({
         date: dateString,
-        day: formatDay(dateString), // NEW: Add day of the week
+        day: formatDay(dateString), 
         subject,
         starttime: formData.starttime,
         endtime: formData.endtime,
       });
       
-      // Advance date by 1 day + gapDays
       currentDate.setDate(currentDate.getDate() + 1 + gapDays);
     });
 
@@ -1412,7 +1414,7 @@ const CreateTimetable = () => {
       }
     }
 
-    if (subjects.length === 0) {
+    if (!subjects || subjects.length === 0) {
       newErrors.subjects = "At least one subject must be selected";
     }
 
@@ -1420,8 +1422,11 @@ const CreateTimetable = () => {
   };
 
   const convertTimeToMinutes = (time) => {
-    const [hours, minutes] = time.split(":").map(Number);
-    return hours * 60 + minutes;
+    if (!time) return 0;
+    const parts = time.split(":");
+    if (parts.length < 2) return 0;
+    const [hours, minutes] = parts.map(Number);
+    return (hours * 60) + minutes;
   };
 
   const handleChange = (e) => {
@@ -1469,20 +1474,16 @@ const CreateTimetable = () => {
     }));
   };
   
-  // NEW FUNCTION: Handle Select All checkbox
   const handleSelectAll = (isChecked) => {
     let updatedSubjects = [];
     if (isChecked) {
-      // If checked, include all available subjects
       updatedSubjects = getAvailableSubjects();
     } else {
-      // If unchecked, set subjects list to empty
       updatedSubjects = [];
     }
     
     setFormData({ ...formData, subjects: updatedSubjects });
     
-    // Re-validate to check if subjects list is now empty or full
     const validationErrors = validateDatesAndTimes(
       formData.startdate,
       formData.starttime,
@@ -1495,7 +1496,6 @@ const CreateTimetable = () => {
     }));
   };
 
-  // NEW FUNCTIONS for Drag and Drop Reordering
   const handleDragStart = (e, index) => {
     setDraggedSubject(formData.subjects[index]);
     setDraggedIndex(index);
@@ -1513,15 +1513,12 @@ const CreateTimetable = () => {
     if (draggedIndex === null || draggedIndex === targetIndex) return;
 
     const newSubjects = [...formData.subjects];
-    // Remove the dragged item
     const [removed] = newSubjects.splice(draggedIndex, 1);
-    // Insert it into the target position
     newSubjects.splice(targetIndex, 0, removed);
 
     setFormData((prev) => ({ ...prev, subjects: newSubjects }));
-    setDraggedIndex(null); // Reset drag state
+    setDraggedIndex(null); 
   };
-  // END Drag and Drop Functions
 
 
   const handleSubmit = async (e) => {
@@ -1552,7 +1549,6 @@ const CreateTimetable = () => {
     };
 
     try {
-      // FIX 2: Using imported API_BASE_URL
       const response = await axios.post(
         `${API_BASE_URL}api/add-etimetable`,
         timetableData,
@@ -1564,7 +1560,6 @@ const CreateTimetable = () => {
       );
       if (response.status === 200) {
         console.log("added etimetable successfully");
-        // Clear existing submit errors on success
         setErrors((prev) => ({ ...prev, submit: "" }));
         setTimeout(() => {
           navigate("/exams");
@@ -1580,22 +1575,6 @@ const CreateTimetable = () => {
         setErrors({ submit: "An unexpected error occurred" });
       }
     }
-  };
-
-  const calculateMinEndDate = () => {
-    if (!formData.startdate || !formData.subjects.length) {
-      return formData.startdate || getTodayDate();
-    }
-
-    const startDate = new Date(formData.startdate);
-    const gapDays = parseInt(formData.examgap.split(" ")[0]) || 0;
-    const examDays = formData.subjects.length;
-    const totalGapDays = (formData.subjects.length - 1) * gapDays;
-
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + examDays - 1 + totalGapDays);
-
-    return endDate.toISOString().split("T")[0];
   };
 
   const handleViewClick = (entry) => {
@@ -1738,13 +1717,11 @@ const CreateTimetable = () => {
               <label className="block text-sm font-medium mb-3">
                 Select Subjects for Standard {formData.standard}
               </label>
-              {/* Display Fetch Error/Message */}
               {errors.fetchSubjects && (
                 <p className="text-red-500 text-sm mb-2">{errors.fetchSubjects}</p>
               )}
               {getAvailableSubjects().length > 0 ? (
                 <>
-                {/* NEW CHANGE: Select All Checkbox */}
                 <div className="mb-4">
                   <input
                     type="checkbox"
@@ -1778,7 +1755,6 @@ const CreateTimetable = () => {
               </div>
               </>
               ) : (
-                // Only show this message if fetching was successful but the list is empty
                 !errors.fetchSubjects && <p className="text-gray-500 text-sm">No subjects available for this standard.</p>
               )}
               {errors.subjects && (
@@ -1802,7 +1778,6 @@ const CreateTimetable = () => {
                 <table className="min-w-full text-left">
                   <thead>
                     <tr className="bg-gray-100">
-                      {/* NEW CHANGE: Added Day column */}
                       <th className="p-2 w-[10%]">Day</th>
                       <th className="p-2 w-[20%]">Date</th>
                       <th className="p-2 w-1/2">Subject</th>
@@ -1812,15 +1787,14 @@ const CreateTimetable = () => {
                   <tbody>
                     {generateTimetablePreview().map((entry, index) => (
                       <tr 
-                        key={entry.subject} 
+                        key={`${entry.subject}-${index}`} 
                         className={`border-t cursor-move ${draggedIndex === index ? 'opacity-50 bg-yellow-100' : ''}`}
                         draggable
                         onDragStart={(e) => handleDragStart(e, index)}
                         onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, index)}
+                        onDrop={(e) => handleDrop(e, targetIndex)}
                         onDragEnd={() => setDraggedIndex(null)}
                       >
-                        {/* NEW CHANGE: Display Day */}
                         <td className="p-2 font-medium">{entry.day}</td>
                         <td className="p-2">{entry.date}</td>
                         <td className="p-2 font-medium">{entry.subject}</td>
@@ -1839,45 +1813,6 @@ const CreateTimetable = () => {
               </p>
             )}
           </div>
-
-          {isModalOpen && selectedEntry && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h4 className="text-lg font-semibold text-gray-700 mb-4">
-                  Timetable Entry Details
-                </h4>
-                <table className="w-full text-left border">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Date</td>
-                      <td className="p-2">{selectedEntry.date}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Subject</td>
-                      <td className="p-2">{selectedEntry.subject}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Start Time</td>
-                      <td className="p-2">{selectedEntry.starttime}</td>
-                    </tr>
-                    <tr>
-                      <td className="p-2 font-medium">End Time</td>
-                      <td className="p-2">{selectedEntry.endtime}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium py-2 px-4 rounded"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="flex justify-between items-center mt-8">
             <button
