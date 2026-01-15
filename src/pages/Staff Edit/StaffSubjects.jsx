@@ -152,59 +152,30 @@ export default function StaffSubjects({ staff }) {
     const [error, setError] = useState(null);
 
     const fetchSubjects = useCallback(async () => {
-        if (!staffId) {
-            console.warn("DEBUG: StaffSubjects - Staff ID is missing, cannot fetch subjects.");
-            setAssignedSubjects([]);
-            return;
-        }
+        if (!staffId) {
+            setAssignedSubjects([]);
+            return;
+        }
 
-        setIsLoading(true);
-        setError(null);
-        setAssignedSubjects([]);
+        setIsLoading(true);
+        setError(null);
 
-        try {
-            // Primary Attempt: Fetch assigned subjects
-            // FIX 1: Using imported API_BASE_URL
-            console.log(`DEBUG: StaffSubjects - Fetching assigned subjects from: ${API_BASE_URL}api/staff/${staffId}/subjects`);
-            
-            const response = await axios.get(`${API_BASE_URL}api/staff/${staffId}/subjects`, {
-                headers: { 'auth': AUTH_HEADER }
-            });
+        try {
+            const response = await axios.get(`${API_BASE_URL}api/staff/${staffId}/subjects`, {
+                headers: { 'auth': AUTH_HEADER }
+            });
 
-            const data = response.data || [];
-            
-            console.log("DEBUG: StaffSubjects - Fetched data from intended endpoint:", data);
-            setAssignedSubjects(data);
+            // The backend now returns a flat array of {subject, standard, division}
+            setAssignedSubjects(response.data || []);
 
-        } catch (err) {
-            const errorMsg = err.response?.data?.message || err.message;
-            console.error("❌ ERROR: StaffSubjects - Failed to fetch data from custom assignment endpoint. Attempting fallback to /subjects.");
-            
-            // --- FALLBACK LOGIC ---
-            try {
-                // FIX 2: Using imported API_BASE_URL
-                const fallbackResponse = await axios.get(`${API_BASE_URL}api/subjects`, {
-                    headers: { 'auth': AUTH_HEADER }
-                });
-                const rawData = fallbackResponse.data || [];
-                const mappedData = rawData.map(item => ({
-                    subject: item.subjectname,
-                    standard: item.standard,
-                    division: 'N/A (All)',
-                }));
-                setAssignedSubjects(mappedData);
-                setError(`Warning: Using general subject list due to 404 on assignment endpoint.`);
-                console.warn("DEBUG: StaffSubjects - Successfully loaded all general subjects as fallback.");
-            } catch (fallbackError) {
-                setError(`Failed to load subjects. Error: ${errorMsg}. Fallback also failed.`);
-                setAssignedSubjects([]);
-            }
-            // --- END FALLBACK ---
-            
-        } finally {
-            setIsLoading(false);
-        }
-    }, [staffId]);
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message;
+            setError(errorMsg);
+            setAssignedSubjects([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [staffId]);
     
     // Fetch data whenever the staff ID changes
     useEffect(() => {
