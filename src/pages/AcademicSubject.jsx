@@ -3020,7 +3020,6 @@
 //         </MainLayout>
 //     );
 // }
-
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import MainLayout from "../layout/MainLayout";
 import axios from "axios";
@@ -3035,7 +3034,7 @@ export default function AcademicSubject() {
     const [subjectData, setSubjectData] = useState([]); 
     const [teachers, setTeachers] = useState([]); 
     const [isLoading, setIsLoading] = useState(false);
-    const [isSaving, setIsSaving] = useState(false); // 🚀 State for button loading
+    const [isSaving, setIsSaving] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -3076,7 +3075,6 @@ export default function AcademicSubject() {
                     headers: { auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=" }
                 });
                 const config = res.data.subjects?.[0];
-                
                 if (config && config.subjects) {
                     const flattenedSubjects = [];
                     config.subjects.forEach(sub => {
@@ -3168,10 +3166,19 @@ export default function AcademicSubject() {
         }
     };
 
+    // 🚀 UPDATED: Logic to group and filter by teacher name search query
     const tableGroups = useMemo(() => {
         const stdGroups = {};
+        
         subjectData.forEach(item => {
             const std = item.standards[0];
+            const teacherName = item.teacherName || "";
+            
+            // Apply Search Query Filter immediately during iteration
+            if (searchQuery && !teacherName.toLowerCase().includes(searchQuery.toLowerCase())) {
+                return;
+            }
+
             let subDisplayName = item.subjects[0];
             if (allSubjectConfigs && allSubjectConfigs.length > 0) {
                 const stdConfig = allSubjectConfigs.find(c => c.standard === std);
@@ -3184,26 +3191,28 @@ export default function AcademicSubject() {
                     }
                 }
             }
+
             if (!stdGroups[std]) stdGroups[std] = { name: std, subjects: {}, totalRows: 0, allIds: [] };
             if (!stdGroups[std].subjects[subDisplayName]) {
                 stdGroups[std].subjects[subDisplayName] = { name: subDisplayName, teachers: [], rawData: [] };
                 stdGroups[std].totalRows += 1;
             }
-            if (!stdGroups[std].subjects[subDisplayName].teachers.includes(item.teacherName)) {
-                stdGroups[std].subjects[subDisplayName].teachers.push(item.teacherName);
+            
+            if (!stdGroups[std].subjects[subDisplayName].teachers.includes(teacherName)) {
+                stdGroups[std].subjects[subDisplayName].teachers.push(teacherName);
                 stdGroups[std].subjects[subDisplayName].rawData.push(item);
             }
             stdGroups[std].allIds.push(item._id);
         });
+
         return Object.values(stdGroups).filter(group => filterStd === "" || group.name === filterStd);
-    }, [subjectData, filterStd, allSubjectConfigs]);
+    }, [subjectData, filterStd, allSubjectConfigs, searchQuery]);
 
     const handleSave = async (e) => {
         e.preventDefault();
-        setIsSaving(true); // 🚀 Start Loading
+        setIsSaving(true);
         const config = { headers: { auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=" } };
         const displayStd = selectedStd + (isNaN(selectedStd) ? "" : " std");
-
         if (!isEditMode) {
             const alreadyExists = subjectData.some(item => item.standards[0] === selectedStd);
             if (alreadyExists) {
@@ -3212,67 +3221,45 @@ export default function AcademicSubject() {
                 return;
             }
         }
-
         try {
-            // 🚀 STEP 1: Handle Deletions if in Edit Mode
             if (isEditMode) {
                 const group = tableGroups.find(g => g.name === selectedStd);
                 if (group) {
-                    // Use settled to ignore 404s and proceed with batch
-                    await Promise.allSettled(group.allIds.map(id => 
-                        axios.delete(`${API_BASE_URL}api/allotments/${id}`, config)
-                    ));
+                    await Promise.allSettled(group.allIds.map(id => axios.delete(`${API_BASE_URL}api/allotments/${id}`, config)));
                 }
             }
-
-            // 🚀 STEP 2: Collect and execute all POST requests in parallel for speed
             const postRequests = [];
             for (const row of allotmentRows) {
                 const selectedTeachers = row.teacherOptions.filter(t => t.teacher !== null);
                 selectedTeachers.forEach(tOpt => {
-                    const payload = {
+                    postRequests.push(axios.post(`${API_BASE_URL}api/allot-subject`, {
                         teacher: tOpt.teacher.value.split(',')[0],
                         teacherName: tOpt.teacher.label,
                         subjects: [row.subject],
                         standards: [selectedStd],
                         divisions: DIVISION_OPTIONS,
-                    };
-                    postRequests.push(axios.post(`${API_BASE_URL}api/allot-subject`, payload, config));
+                    }, config));
                 });
             }
-            
             await Promise.all(postRequests);
-            
             alert(isEditMode ? `subjects successfully updated for ${displayStd}` : `subjects successfully alloted for ${displayStd}`);
-            resetFormState(); 
-            fetchAllData();
-        } catch (error) { 
-            console.error("Save Error:", error);
-            alert("Error saving allotment."); 
-        } finally {
-            setIsSaving(false); // 🚀 Stop Loading
-        }
+            resetFormState(); fetchAllData();
+        } catch (error) { alert("Error saving allotment."); } finally { setIsSaving(false); }
     };
 
     const handleEdit = (group) => {
-        setIsEditMode(true);
-        setSelectedStd(group.name);
+        setIsEditMode(true); setSelectedStd(group.name);
         const rows = Object.values(group.subjects).map(sub => ({
-            id: Math.random(), 
-            subject: sub.name,
+            id: Math.random(), subject: sub.name,
             teacherOptions: sub.rawData.map(rd => {
                 const masterTeacher = teachers.find(t => t._id === rd.teacher);
                 const teacherValue = masterTeacher 
                     ? `${masterTeacher._id},${masterTeacher.firstname} ${masterTeacher.middlename} ${masterTeacher.lastname}`
                     : `${rd.teacher},${rd.teacherName}`;
-                return {
-                    id: Math.random(),
-                    teacher: { value: teacherValue, label: rd.teacherName }
-                };
+                return { id: Math.random(), teacher: { value: teacherValue, label: rd.teacherName } };
             })
         }));
-        setAllotmentRows(rows);
-        setShowModal(true);
+        setAllotmentRows(rows); setShowModal(true);
     };
 
     const handleDeleteGroup = async (groupName, ids) => {
@@ -3281,11 +3268,8 @@ export default function AcademicSubject() {
             const config = { headers: { auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=" } };
             try {
                 await Promise.all(ids.map(id => axios.delete(`${API_BASE_URL}api/allotments/${id}`, config)));
-                alert(`subjects successfully deleted for ${displayStd}`);
-                fetchAllData();
-            } catch (err) { 
-                alert("Delete failed."); 
-            }
+                alert(`subjects successfully deleted for ${displayStd}`); fetchAllData();
+            } catch (err) { alert("Delete failed."); }
         }
     };
 
@@ -3302,19 +3286,14 @@ export default function AcademicSubject() {
                         <option value="" disabled>Select Standard</option>
                         {STANDARD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
-
                     {allotmentRows.map((row) => (
                         <div key={row.id} className="border p-3 rounded-md mb-4 bg-gray-50 relative">
                             <button type="button" onClick={() => handleRemoveSubjectRow(row.id)} className="absolute top-1 right-2 text-red-500 font-bold text-lg">&times;</button>
                             <label className="block text-xs font-bold mb-1">Subject / Sub-Subject</label>
                             <select required value={row.subject} onChange={(e) => setAllotmentRows(allotmentRows.map(r => r.id === row.id ? { ...r, subject: e.target.value } : r))} className="w-full p-2 border rounded-md mb-2">
                                 <option value="" disabled>Select</option>
-                                {availableSubjectsForStd
-                                    .filter(s => s === row.subject || !allotmentRows.some(ar => ar.subject === s))
-                                    .map(s => <option key={s} value={s}>{s}</option>)
-                                }
+                                {availableSubjectsForStd.filter(s => s === row.subject || !allotmentRows.some(ar => ar.subject === s)).map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
-
                             <label className="block text-xs font-bold mb-1">Teachers</label>
                             {row.teacherOptions.map((tOpt) => (
                                 <div key={tOpt.id} className="flex items-center gap-2 mb-2">
@@ -3323,23 +3302,14 @@ export default function AcademicSubject() {
                                         {getFilteredTeacherOptions(selectedStd).map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                     </select>
                                     <button type="button" onClick={() => handleAddTeacherToRow(row.id)} className="text-blue-600 font-bold text-xl">+</button>
-                                    {row.teacherOptions.length > 1 && (
-                                        <button type="button" onClick={() => handleRemoveTeacherFromRow(row.id, tOpt.id)} className="text-red-500 font-bold text-xl">−</button>
-                                    )}
+                                    {row.teacherOptions.length > 1 && <button type="button" onClick={() => handleRemoveTeacherFromRow(row.id, tOpt.id)} className="text-red-500 font-bold text-xl">−</button>}
                                 </div>
                             ))}
                         </div>
                     ))}
-
                     <div className="flex justify-between mt-4">
                         <button type="button" onClick={handleAddSubjectRow} className="text-blue-600 font-semibold text-sm">+ Add More Subject</button>
-                        <button 
-                            type="submit" 
-                            disabled={isSaving}
-                            className={`${isSaving ? 'bg-blue-300' : 'bg-blue-500'} text-white px-6 py-2 rounded-md transition-all min-w-[100px]`}
-                        >
-                            {isSaving ? 'Save...' : 'Save'}
-                        </button>
+                        <button type="submit" disabled={isSaving} className={`${isSaving ? 'bg-blue-300' : 'bg-blue-500'} text-white px-6 py-2 rounded-md transition-all min-w-[100px]`}>{isSaving ? 'Save...' : 'Save'}</button>
                     </div>
                 </form>
             </div>
@@ -3352,7 +3322,7 @@ export default function AcademicSubject() {
                 <div className="flex flex-1 flex-col p-4 sm:p-6">
                     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div className="flex flex-wrap items-center gap-4">
-                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="w-full sm:w-64 px-3 py-2 rounded-md border border-gray-300 text-sm shadow-sm" />
+                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search teacher name..." className="w-full sm:w-64 px-3 py-2 rounded-md border border-gray-300 text-sm shadow-sm" />
                             <select value={filterStd} onChange={(e) => setFilterStd(e.target.value)} className="px-3 py-2 rounded-md border border-gray-300 text-sm shadow-sm">
                                 <option value="">All Standards</option>
                                 {STANDARD_OPTIONS.map(std => <option key={std} value={std}>{std}</option>)}
@@ -3360,16 +3330,14 @@ export default function AcademicSubject() {
                         </div>
                         <button onClick={() => setShowModal(true)} className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700 transition-colors">Add</button>
                     </div>
-                    
                     <h2 className="text-center text-2xl font-bold text-gray-800 mb-6">Subject Allotment</h2>
-                    
                     <div className="overflow-x-auto shadow-xl rounded-lg border border-gray-300">
                         <table className="min-w-full border-collapse text-center">
                             <thead className="bg-blue-100 text-gray-700 font-bold">
                                 <tr>
                                     <th className="px-6 py-4 border border-gray-300 uppercase tracking-wider">Standard</th>
                                     <th className="px-6 py-4 border border-gray-300 uppercase tracking-wider">Subjects</th>
-                                    <th className="px-6 py-4 border border-gray-300 uppercase tracking-wider">Teacher</th>
+                                    <th className="px-6 py-4 border border-gray-300 uppercase tracking-wider text-left">Teacher</th>
                                     <th className="px-6 py-4 border border-gray-300 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
