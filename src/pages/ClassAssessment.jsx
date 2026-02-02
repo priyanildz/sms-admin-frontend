@@ -1027,7 +1027,7 @@ const ClassAssessment = () => {
                 </option>
                 {staffList.map((staff) => (
                   <option key={staff._id} value={staff._id}>
-                    {staff.firstname} {staff.lastname}
+                    {`${staff.firstname || ""} ${staff.middlename || ""} ${staff.lastname || ""}`.replace(/\s+/g, ' ').trim()}
                   </option>
                 ))}
               </select>
