@@ -875,8 +875,13 @@ const ClassAssessment = () => {
       setError(null);
 
       // Format Date to YYYY-MM-DD string for the backend filter
+      // const formattedDate = selectedDate
+      //   ? selectedDate.toISOString().split('T')[0]
+      //   : '';
+
+      // Inside fetchAssessments function in ClassAssessment.js
       const formattedDate = selectedDate
-        ? selectedDate.toLocaleDateString("en-CA") // Force YYYY-MM-DD format
+        ? selectedDate.toLocaleDateString("en-CA") // ✅ Correctly returns YYYY-MM-DD
         : "";
 
       // Construct the query parameters
