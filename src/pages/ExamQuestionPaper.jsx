@@ -1580,20 +1580,24 @@ const ExamQuestionPaper = () => {
       },
     });
 
-    // Logging the response is critical to see exactly what the backend sends
     console.log("Subjects API Response:", res.data);
 
-    // According to your DB screenshot:
-    // res.data is likely an array containing one document.
-    // That document has a 'subjects' field which is an array of objects.
-    if (res.data && res.data.length > 0 && res.data[0].subjects) {
-      const subjectArray = res.data[0].subjects;
-      
-      // Extract only the 'name' string from each object (e.g., "English", "Hindi")
-      const subjectNames = subjectArray.map(sub => sub.name);
-      
+    // ✅ ROBUST CHECK: Handle both single object and array responses
+    let subjectData = null;
+
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      // If backend returns [{ standard: "1", subjects: [...] }]
+      subjectData = res.data[0].subjects;
+    } else if (res.data && res.data.subjects) {
+      // If backend returns { standard: "1", subjects: [...] }
+      subjectData = res.data.subjects;
+    }
+
+    if (subjectData) {
+      const subjectNames = subjectData.map((sub) => sub.name);
       setSubjects(subjectNames);
     } else {
+      console.warn("No subjects found for this standard");
       setSubjects([]);
     }
   } catch (err) {
