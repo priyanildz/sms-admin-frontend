@@ -685,6 +685,9 @@ const ExamAddPaperEval = () => {
             >
                             <option value="">Select Standard</option>
               {/* CHANGE: Displaying only numbers 1 through 10 */}             {" "}
+              <option value="nursey">Nursey</option>           {" "}
+              <option value="junior">Junior</option>           {" "}
+              <option value="senior">Senior</option>
               <option value="1">1</option>             {" "}
               <option value="2">2</option>             {" "}
               <option value="3">3</option>             {" "}
