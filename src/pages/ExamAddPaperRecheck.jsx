@@ -906,9 +906,21 @@ const ExamAddPaperRecheck = () => {
                             required
                         >
                             <option value="">Select Standard</option>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map(grade => (
-                                <option key={grade} value={String(grade)}>{grade}</option>
-                            ))}
+                            <option value="">Select Standard</option>
+              {/* CHANGE: Displaying only numbers 1 through 10 */}             {" "}
+              <option value="nursey">Nursey</option>           {" "}
+              <option value="junior">Junior</option>           {" "}
+              <option value="senior">Senior</option>
+              <option value="1">1</option>             {" "}
+              <option value="2">2</option>             {" "}
+              <option value="3">3</option>             {" "}
+              <option value="4">4</option>             {" "}
+              <option value="5">5</option>             {" "}
+              <option value="6">6</option>             {" "}
+              <option value="7">7</option>             {" "}
+              <option value="8">8</option>             {" "}
+              <option value="9">9</option>             {" "}
+              <option value="10">10</option>           {" "}
                         </select>
                     </div>
 
