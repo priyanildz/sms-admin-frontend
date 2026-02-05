@@ -1544,11 +1544,11 @@ const ExamQuestionPaper = () => {
   const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU="; // ✅ FIX: Use the exact field name 'pdfPath' (Capital P) from MongoDB for the key.
 
   const getSetKey = (set, idx) => set.pdfPath || `idx-${idx}`; // Function to fetch schedules (can be called by useEffect or after creation/deletion)
-  const fetchSets = async (std, subject) => {
-    if (!std || !subject) return;
+  const fetchSets = async (Standard, subject) => {
+    if (!standard || !subject) return;
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}api/sets/${std}/${subject}`, {
+      const res = await axios.get(`${API_BASE_URL}api/sets/${standard}/${subject}`, {
         headers: {
           "Content-Type": "application/json",
           auth: AUTH_HEADER,
@@ -1564,16 +1564,16 @@ const ExamQuestionPaper = () => {
   };
 
   const handleStandardChange = async (e) => {
-  const std = e.target.value;
-  setSelectedStd(std);
+  const standard = e.target.value;
+  setSelectedStd(standard);
   setSelectedSubject("");
   setSets([]);
   setSetApprovalStatus({});
 
-  if (!std) return;
+  if (!standard) return;
 
   try {
-    const res = await axios.get(`${API_BASE_URL}api/subjects/${std}`, {
+    const res = await axios.get(`${API_BASE_URL}api/subjects/${standard}`, {
       headers: {
         "Content-Type": "application/json",
         auth: AUTH_HEADER,
