@@ -1580,24 +1580,19 @@ const ExamQuestionPaper = () => {
       },
     });
 
-    console.log("Subjects API Response:", res.data);
-
-    // ✅ ROBUST CHECK: Handle both single object and array responses
-    let subjectData = null;
-
+    // Handle both Array and Object responses
+    let rawSubjects = [];
     if (Array.isArray(res.data) && res.data.length > 0) {
-      // If backend returns [{ standard: "1", subjects: [...] }]
-      subjectData = res.data[0].subjects;
+      rawSubjects = res.data[0].subjects;
     } else if (res.data && res.data.subjects) {
-      // If backend returns { standard: "1", subjects: [...] }
-      subjectData = res.data.subjects;
+      rawSubjects = res.data.subjects;
     }
 
-    if (subjectData) {
-      const subjectNames = subjectData.map((sub) => sub.name);
+    // Map the 'name' field from your MongoDB objects
+    if (rawSubjects && rawSubjects.length > 0) {
+      const subjectNames = rawSubjects.map(sub => sub.name);
       setSubjects(subjectNames);
     } else {
-      console.warn("No subjects found for this standard");
       setSubjects([]);
     }
   } catch (err) {
