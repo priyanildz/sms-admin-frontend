@@ -545,7 +545,7 @@ const EventManagement = () => {
         // 💡 FIX 1: Ensure staff names are clean here for the dropdown options in EditEvents
         const formattedStaff = response.data.map(staff => ({
           staffid: staff.staffid,
-          name: `${staff.firstname} ${staff.lastname}`.trim() 
+          name: `${staff.firstname} ${staff.middlename} ${staff.lastname}`.trim() 
         }));
         setStaffList(formattedStaff);
       } catch (error) {
