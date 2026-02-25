@@ -244,7 +244,7 @@
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 // --- Import the API Base URL from the config file (Assumed Import) ---
-import { API_BASE_URL } from '../config'; 
+import { API_BASE_URL } from '../config';
 
 const AcademicSyllabus = () => {
   const [selectedStd, setSelectedStd] = useState("");
