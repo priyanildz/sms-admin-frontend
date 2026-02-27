@@ -1006,15 +1006,40 @@ const ClassViewAssessment = () => {
     setHomeworkData((prev) => ({ ...prev, [field]: value }));
   };
     
+  // const openStatusModal = (title) => {
+  //   let students = [];
+
+  //   // If actual submissions exist in the fetched data, use them
+  //   if (assessmentData?.submissions && assessmentData.submissions.length > 0) {
+  //       students = assessmentData.submissions.map((sub, index) => ({
+  //           id: sub.rollNo || index,
+  //           name: sub.studentName,
+  //           uploaded: sub.status === "S" // 'S' usually denotes submitted
+  //       }));
+  //   } else {
+  //       // Fallback to internal filtering logic
+  //       students = getStudentListForClass(classStandard, classDivision);
+  //   }
+    
+  //   setStudentList(students);
+  //   setModalTitle(title);
+  //   setShowModal(true);
+  // };
+
+
   const openStatusModal = (title) => {
     let students = [];
 
+    // Identify which data array to use based on the button clicked
+    const isActivity = title === "Class Activity";
+    const targetData = isActivity ? assessmentData?.activitySubmissions : assessmentData?.submissions;
+
     // If actual submissions exist in the fetched data, use them
-    if (assessmentData?.submissions && assessmentData.submissions.length > 0) {
-        students = assessmentData.submissions.map((sub, index) => ({
+    if (targetData && targetData.length > 0) {
+        students = targetData.map((sub, index) => ({
             id: sub.rollNo || index,
             name: sub.studentName,
-            uploaded: sub.status === "S" // 'S' usually denotes submitted
+            uploaded: sub.status === "S" // 'S' denotes submitted
         }));
     } else {
         // Fallback to internal filtering logic
