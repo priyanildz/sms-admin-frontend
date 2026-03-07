@@ -1299,7 +1299,7 @@ const CreateTimetable = () => {
     "10",
   ];
 
-  const examTypes = ["mid-term", "finals", "unit test", "quarterly"];
+  const examTypes = ["Unit Test 1", "Sem 1", "Unit Test 2", "Sem 2"];
   const examGaps = ["None", "1 Day", "2 Days", "3 Days"];
   const AUTH_HEADER = "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=";
 
