@@ -502,11 +502,12 @@
 
 // export default ExamAddPaperEval;
 
+
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "../layout/MainLayout";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-// --- Import the API Base URL from the config file (Assumed Import) ---
 import { API_BASE_URL } from "../config";
 
 const ExamAddPaperEval = () => {
@@ -518,6 +519,7 @@ const ExamAddPaperEval = () => {
     teacher: "",
     standard: "",
     division: "",
+    examtype: "",
     subject: "",
     papers: "",
   }); // const API_BASE_URL = "http://localhost:5000/api"; // REMOVED LOCAL DEFINITION
@@ -595,6 +597,7 @@ const ExamAddPaperEval = () => {
       assignedteacher: form.teacher,
       standard: form.standard,
       division: form.division,
+      examtype: form.examtype,
       subject: form.subject,
       numberOfPapers: parseInt(form.papers),
       assignedby: "admin",
@@ -767,6 +770,25 @@ const ExamAddPaperEval = () => {
             />
                      {" "}
           </div>
+          {/* Exam Type */}
+<div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+        Exam Type
+    </label>
+    <select
+        name="examtype"
+        value={form.examtype}
+        onChange={handleChange}
+        className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        required
+    >
+        <option value="">Select Exam Type</option>
+        <option value="Unit Test 1">Unit Test 1</option>
+        <option value="Sem 1">Sem 1</option>
+        <option value="Unit Test 2">Unit Test 2</option>
+        <option value="Sem 2">Sem 2</option>
+    </select>
+</div>
                     {/* Back and Next Buttons on the same line */}         {" "}
           <div className="flex justify-between items-center mt-8">
                        {" "}
