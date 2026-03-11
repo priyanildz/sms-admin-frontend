@@ -22,7 +22,11 @@ export default function Dashboard() {
     { icon: faMoneyBillAlt, title: "Fees Management", link: "/fees" },
     { icon: faClipboardList, title: "Exam Management", link: "/exams" },
     { icon: faCalendarAlt, title: "Event Management", link: "/events" },
-    { icon: faBullhorn, title: "Announcement Management", link: "/announcements" },
+    {
+      icon: faBullhorn,
+      title: "Announcement Management",
+      link: "/announcements",
+    },
     { icon: faBus, title: "Transport Management", link: "/transport" },
   ];
 
