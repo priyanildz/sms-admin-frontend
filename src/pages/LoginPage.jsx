@@ -19,16 +19,16 @@ export default function LoginPage() {
     setErrorMessage("");
 
     try {
-      const storedUsername = localStorage.getItem("username") || "System_User";
-      const storedRole = localStorage.getItem("role") || "admin";
+      // const storedUsername = localStorage.getItem("username") || "System_User";
+      // const storedRole = localStorage.getItem("role") || "admin";
       const response = await fetch(`${API_BASE_URL}api/loginadmin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           // Static auth header used by your system
           auth: "ZjVGZPUtYW1hX2FuZHJvaWRfMjAyMzY0MjU=",
-          username: storedUsername,
-          role: storedRole,
+          // username: storedUsername,
+          // role: storedRole,
         },
         body: JSON.stringify({ username, password }),
       });
