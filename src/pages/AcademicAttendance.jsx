@@ -11,7 +11,7 @@ const AcademicAttendance = () => {
   const [loading, setLoading] = useState(false);
 
   // Define all divisions that need to be checked
-  const DIVISIONS_TO_CHECK = ["A", "B", "C", "D"];
+  const DIVISIONS_TO_CHECK = ["A", "B", "C", "D", "E"];
 
   // --- Core Fetching Logic: Fetches ALL Divisions ---
   const fetchAttendance = async () => {
